@@ -6,6 +6,7 @@ import { AdminRoute } from './components/auth/AdminRoute';
 import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/Home';
 import { ArticlesPage } from './pages/Articles';
+import { ArticleDetailPage } from './pages/ArticleDetailPage';
 import { NewsPage } from './pages/News';
 import { TutorialsPage } from './pages/Tutorials';
 import { ResearchPage } from './pages/Research';
@@ -24,6 +25,9 @@ import { LabDetailPage } from './pages/academy/LabDetailPage';
 import { UserDashboardPage } from './pages/academy/UserDashboardPage';
 import { CommunityPage } from './pages/Community';
 import { JobsPage } from './pages/Jobs';
+import { JobDetailPage } from './pages/JobDetailPage';
+import { EventDetailPage } from './pages/EventDetailPage';
+import { VulnerabilityDetailPage } from './pages/VulnerabilityDetailPage';
 import { SearchResults } from './components/search/SearchResults';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
@@ -66,6 +70,7 @@ export default function App() {
                 {/* Public Routes */}
                 <Route path={ROUTES.HOME} element={<HomePage />} />
                 <Route path={ROUTES.ARTICLES} element={<ArticlesPage />} />
+                <Route path="/articles/:slug" element={<ArticleDetailPage />} />
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/tutorials" element={<TutorialsPage />} />
                 <Route path="/research" element={<ResearchPage />} />
@@ -84,6 +89,9 @@ export default function App() {
                 <Route path="/academy/dashboard" element={<UserDashboardPage />} />
                 <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />
                 <Route path={ROUTES.JOBS} element={<JobsPage />} />
+                <Route path="/jobs/:slug" element={<JobDetailPage />} />
+                <Route path="/events/:slug" element={<EventDetailPage />} />
+                <Route path="/vulnerabilities/:cveId" element={<VulnerabilityDetailPage />} />
                 <Route path="/search" element={<SearchResults />} />
 
                 {/* Auth Routes */}
