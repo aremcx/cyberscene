@@ -38,6 +38,8 @@ import { AdminCategories } from './pages/admin/AdminCategories';
 import { AdminTags } from './pages/admin/AdminTags';
 import { AdminAuthors } from './pages/admin/AdminAuthors';
 import { AdminTools } from './pages/admin/AdminTools';
+import { NewsletterManagementPage } from './pages/admin/NewsletterManagementPage';
+import { AIAssistantPage } from './pages/AIAssistantPage';
 import { NotFoundPage } from './pages/NotFound';
 import { ROUTES } from './config/routes';
 import { initializeDatabase } from './db';
@@ -162,6 +164,17 @@ export default function App() {
                     </AdminRoute>
                   }
                 />
+                <Route
+                  path="/admin/newsletter"
+                  element={
+                    <AdminRoute>
+                      <NewsletterManagementPage />
+                    </AdminRoute>
+                  }
+                />
+
+                {/* AI Assistant */}
+                <Route path="/ai-assistant" element={<AIAssistantPage />} />
 
                 {/* Demo Routes */}
                 <Route path={ROUTES.DEMO_DATABASE} element={<DatabaseDemoPage />} />

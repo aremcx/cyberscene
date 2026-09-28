@@ -102,6 +102,35 @@ import type {
   EventFilters,
 } from './eventsSchema';
 
+import type {
+  NewsletterSubscriber,
+  NewsletterCampaign,
+  NewsletterPreference,
+  SubscribeInput,
+  CreateCampaignInput,
+  SubscriberFilters,
+  CampaignFilters,
+} from './newsletterSchema';
+
+import {
+  SubscriptionStatus,
+  CampaignStatus,
+  NewsletterCategory,
+} from './newsletterSchema';
+
+import type {
+  AIConversation,
+  AIMessage,
+  AIUsageMetrics,
+  CreateConversationInput,
+  CreateMessageInput,
+} from './aiSchema';
+
+import {
+  ConversationStatus,
+  MessageRole,
+} from './aiSchema';
+
 import { generateId } from '../lib/utils';
 
 // ============================================
@@ -155,6 +184,14 @@ interface DatabaseState {
   jobs: Map<string, Job>;
   // Events
   events: Map<string, Event>;
+  // Newsletter
+  newsletterSubscribers: Map<string, NewsletterSubscriber>;
+  newsletterCampaigns: Map<string, NewsletterCampaign>;
+  newsletterPreferences: Map<string, NewsletterPreference>;
+  // AI Assistant
+  aiConversations: Map<string, AIConversation>;
+  aiMessages: Map<string, AIMessage>;
+  aiUsageMetrics: Map<string, AIUsageMetrics>;
 }
 
 let state: DatabaseState = createEmptyState();
@@ -207,6 +244,14 @@ function createEmptyState(): DatabaseState {
     jobs: new Map(),
     // Events
     events: new Map(),
+    // Newsletter
+    newsletterSubscribers: new Map(),
+    newsletterCampaigns: new Map(),
+    newsletterPreferences: new Map(),
+    // AI Assistant
+    aiConversations: new Map(),
+    aiMessages: new Map(),
+    aiUsageMetrics: new Map(),
   };
 }
 
@@ -272,6 +317,14 @@ export const db = {
       jobs: state.jobs.size,
       // Events
       events: state.events.size,
+      // Newsletter
+      newsletterSubscribers: state.newsletterSubscribers.size,
+      newsletterCampaigns: state.newsletterCampaigns.size,
+      newsletterPreferences: state.newsletterPreferences.size,
+      // AI Assistant
+      aiConversations: state.aiConversations.size,
+      aiMessages: state.aiMessages.size,
+      aiUsageMetrics: state.aiUsageMetrics.size,
     };
   },
 
@@ -2709,6 +2762,365 @@ export const db = {
       event.registeredCount++;
       state.events.set(id, event);
     }
+  },
+
+  // ============================================
+  // NEWSLETTER - SUBSCRIBERS
+  // ============================================
+
+  subscribeNewsletter(input: SubscribeInput): NewsletterSubscriber {
+    // Check if already subscribed
+    for (const sub of state.newsletterSubscribers.values()) {
+      if (sub.email === input.email) {
+        if (sub.status === SubscriptionStatus.ACTIVE) {
+          throw new DatabaseError('UNIQUE_CONSTRAINT', 'Email is already subscribed');
+        }
+        // Reactivate if previously unsubscribed
+        const updated = {
+          ...sub,
+          status: SubscriptionStatus.ACTIVE,
+          categories: input.categories ?? sub.categories,
+          unsubscribedAt: null,
+          updatedAt: new Date().toISOString(),
+        };
+        state.newsletterSubscribers.set(sub.id, updated);
+        return updated;
+      }
+    }
+
+    const now = new Date().toISOString();
+    const subscriber: NewsletterSubscriber = {
+      id: generateId(),
+      email: input.email,
+      name: input.name ?? null,
+      status: SubscriptionStatus.ACTIVE,
+      categories: input.categories ?? [NewsletterCategory.NEWS],
+      verificationToken: generateId(),
+      verifiedAt: null,
+      unsubscribedAt: null,
+      subscribedAt: now,
+      userId: input.userId ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.newsletterSubscribers.set(subscriber.id, subscriber);
+    return subscriber;
+  },
+
+  unsubscribeNewsletter(email: string): NewsletterSubscriber {
+    for (const sub of state.newsletterSubscribers.values()) {
+      if (sub.email === email) {
+        const updated = {
+          ...sub,
+          status: SubscriptionStatus.UNSUBSCRIBED,
+          unsubscribedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        state.newsletterSubscribers.set(sub.id, updated);
+        return updated;
+      }
+    }
+    throw new DatabaseError('NOT_FOUND', 'Subscriber not found');
+  },
+
+  getSubscriberByEmail(email: string): NewsletterSubscriber | null {
+    for (const sub of state.newsletterSubscribers.values()) {
+      if (sub.email === email) return sub;
+    }
+    return null;
+  },
+
+  listSubscribers(filters?: SubscriberFilters): NewsletterSubscriber[] {
+    let subscribers = Array.from(state.newsletterSubscribers.values());
+    
+    if (filters) {
+      if (filters.status) {
+        subscribers = subscribers.filter(s => s.status === filters.status);
+      }
+      if (filters.category) {
+        subscribers = subscribers.filter(s => s.categories.includes(filters.category!));
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        subscribers = subscribers.filter(s =>
+          s.email.toLowerCase().includes(q) ||
+          (s.name && s.name.toLowerCase().includes(q))
+        );
+      }
+    }
+    
+    return subscribers.sort((a, b) => 
+      new Date(b.subscribedAt).getTime() - new Date(a.subscribedAt).getTime()
+    );
+  },
+
+  updateSubscriberPreferences(
+    email: string,
+    categories: NewsletterCategory[]
+  ): NewsletterSubscriber {
+    for (const sub of state.newsletterSubscribers.values()) {
+      if (sub.email === email) {
+        const updated = {
+          ...sub,
+          categories,
+          updatedAt: new Date().toISOString(),
+        };
+        state.newsletterSubscribers.set(sub.id, updated);
+        return updated;
+      }
+    }
+    throw new DatabaseError('NOT_FOUND', 'Subscriber not found');
+  },
+
+  // ============================================
+  // NEWSLETTER - CAMPAIGNS
+  // ============================================
+
+  createCampaign(input: CreateCampaignInput): NewsletterCampaign {
+    const now = new Date().toISOString();
+    const campaign: NewsletterCampaign = {
+      id: generateId(),
+      title: input.title,
+      subject: input.subject,
+      content: input.content,
+      categories: input.categories,
+      status: input.scheduledAt ? CampaignStatus.SCHEDULED : CampaignStatus.DRAFT,
+      scheduledAt: input.scheduledAt ?? null,
+      sentAt: null,
+      createdBy: input.createdBy,
+      recipientCount: 0,
+      sentCount: 0,
+      openedCount: 0,
+      clickedCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.newsletterCampaigns.set(campaign.id, campaign);
+    return campaign;
+  },
+
+  getCampaignById(id: string): NewsletterCampaign | null {
+    return state.newsletterCampaigns.get(id) ?? null;
+  },
+
+  listCampaigns(filters?: CampaignFilters): NewsletterCampaign[] {
+    let campaigns = Array.from(state.newsletterCampaigns.values());
+    
+    if (filters) {
+      if (filters.status) {
+        campaigns = campaigns.filter(c => c.status === filters.status);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        campaigns = campaigns.filter(c =>
+          c.title.toLowerCase().includes(q) ||
+          c.subject.toLowerCase().includes(q)
+        );
+      }
+    }
+    
+    return campaigns.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  },
+
+  updateCampaign(id: string, updates: Partial<NewsletterCampaign>): NewsletterCampaign {
+    const campaign = state.newsletterCampaigns.get(id);
+    if (!campaign) throw new DatabaseError('NOT_FOUND', `Campaign with id "${id}" not found.`);
+    const updated = { ...campaign, ...updates, updatedAt: new Date().toISOString() };
+    state.newsletterCampaigns.set(id, updated);
+    return updated;
+  },
+
+  deleteCampaign(id: string): void {
+    if (!state.newsletterCampaigns.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Campaign with id "${id}" not found.`);
+    }
+    state.newsletterCampaigns.delete(id);
+  },
+
+  sendCampaign(id: string): NewsletterCampaign {
+    const campaign = state.newsletterCampaigns.get(id);
+    if (!campaign) throw new DatabaseError('NOT_FOUND', `Campaign with id "${id}" not found.`);
+    
+    // Count recipients
+    const recipients = Array.from(state.newsletterSubscribers.values()).filter(
+      sub => sub.status === SubscriptionStatus.ACTIVE &&
+        sub.categories.some(cat => campaign.categories.includes(cat))
+    );
+    
+    const updated = {
+      ...campaign,
+      status: CampaignStatus.SENT,
+      sentAt: new Date().toISOString(),
+      recipientCount: recipients.length,
+      sentCount: recipients.length,
+      updatedAt: new Date().toISOString(),
+    };
+    state.newsletterCampaigns.set(id, updated);
+    return updated;
+  },
+
+  // ============================================
+  // NEWSLETTER - PREFERENCES
+  // ============================================
+
+  getNewsletterPreferences(userId: string): NewsletterPreference | null {
+    return state.newsletterPreferences.get(userId) ?? null;
+  },
+
+  updateNewsletterPreferences(
+    userId: string,
+    preferences: Partial<NewsletterPreference>
+  ): NewsletterPreference {
+    const existing = state.newsletterPreferences.get(userId);
+    const now = new Date().toISOString();
+    
+    if (existing) {
+      const updated = { ...existing, ...preferences, updatedAt: now };
+      state.newsletterPreferences.set(userId, updated);
+      return updated;
+    }
+    
+    const pref: NewsletterPreference = {
+      id: generateId(),
+      userId,
+      emailNotifications: preferences.emailNotifications ?? true,
+      categories: preferences.categories ?? Object.values(NewsletterCategory),
+      frequency: preferences.frequency ?? 'weekly',
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.newsletterPreferences.set(userId, pref);
+    return pref;
+  },
+
+  // ============================================
+  // AI ASSISTANT - CONVERSATIONS
+  // ============================================
+
+  createAIConversation(input: CreateConversationInput): AIConversation {
+    const now = new Date().toISOString();
+    const conversation: AIConversation = {
+      id: generateId(),
+      userId: input.userId,
+      title: input.title ?? 'New Conversation',
+      status: ConversationStatus.ACTIVE,
+      messageCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.aiConversations.set(conversation.id, conversation);
+    return conversation;
+  },
+
+  getAIConversationById(id: string): AIConversation | null {
+    return state.aiConversations.get(id) ?? null;
+  },
+
+  listAIConversations(userId: string): AIConversation[] {
+    return Array.from(state.aiConversations.values())
+      .filter(c => c.userId === userId)
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  },
+
+  updateAIConversation(id: string, updates: Partial<AIConversation>): AIConversation {
+    const conversation = state.aiConversations.get(id);
+    if (!conversation) throw new DatabaseError('NOT_FOUND', `Conversation with id "${id}" not found.`);
+    const updated = { ...conversation, ...updates, updatedAt: new Date().toISOString() };
+    state.aiConversations.set(id, updated);
+    return updated;
+  },
+
+  deleteAIConversation(id: string): void {
+    if (!state.aiConversations.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Conversation with id "${id}" not found.`);
+    }
+    state.aiConversations.delete(id);
+    
+    // Delete associated messages
+    for (const [msgId, msg] of state.aiMessages) {
+      if (msg.conversationId === id) {
+        state.aiMessages.delete(msgId);
+      }
+    }
+  },
+
+  // ============================================
+  // AI ASSISTANT - MESSAGES
+  // ============================================
+
+  createAIMessage(input: CreateMessageInput): AIMessage {
+    const now = new Date().toISOString();
+    const message: AIMessage = {
+      id: generateId(),
+      conversationId: input.conversationId,
+      role: input.role,
+      content: input.content,
+      citations: input.citations ?? [],
+      metadata: input.metadata ?? {},
+      createdAt: now,
+    };
+    state.aiMessages.set(message.id, message);
+    
+    // Update conversation message count
+    const conversation = state.aiConversations.get(input.conversationId);
+    if (conversation) {
+      conversation.messageCount++;
+      conversation.updatedAt = now;
+      state.aiConversations.set(conversation.id, conversation);
+    }
+    
+    return message;
+  },
+
+  listAIMessages(conversationId: string): AIMessage[] {
+    return Array.from(state.aiMessages.values())
+      .filter(m => m.conversationId === conversationId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  },
+
+  // ============================================
+  // AI ASSISTANT - USAGE METRICS
+  // ============================================
+
+  trackAIUsage(
+    userId: string,
+    conversationId: string,
+    messageCount: number,
+    totalTokens: number
+  ): AIUsageMetrics {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check if metrics already exist for today
+    for (const metric of state.aiUsageMetrics.values()) {
+      if (metric.userId === userId && metric.date === today) {
+        metric.messageCount += messageCount;
+        metric.totalTokens += totalTokens;
+        return metric;
+      }
+    }
+    
+    const metrics: AIUsageMetrics = {
+      id: generateId(),
+      userId,
+      conversationId,
+      messageCount,
+      totalTokens,
+      date: today,
+      createdAt: new Date().toISOString(),
+    };
+    state.aiUsageMetrics.set(metrics.id, metrics);
+    return metrics;
+  },
+
+  getAIUsageMetrics(userId: string, days: number = 30): AIUsageMetrics[] {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return Array.from(state.aiUsageMetrics.values())
+      .filter(m => m.userId === userId && new Date(m.date) >= cutoffDate)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   },
 };
 

@@ -20,9 +20,10 @@ import { seedAcademy } from './seedAcademy';
 import { seedCommunity } from './seedCommunity';
 import { seedJobs } from './seedJobs';
 import { seedEvents } from './seedEvents';
+import { seedNewsletterAndAI } from './seedNewsletterAndAI';
 
 // Re-export for convenience
-export { seedThreatIntelligence, seedVulnerabilities, seedTools, seedAcademy, seedCommunity, seedJobs, seedEvents };
+export { seedThreatIntelligence, seedVulnerabilities, seedTools, seedAcademy, seedCommunity, seedJobs, seedEvents, seedNewsletterAndAI };
 
 // ============================================
 // SEED DATA
@@ -89,6 +90,9 @@ export async function seedDatabase(): Promise<void> {
   
   // Seed events
   seedEvents();
+  
+  // Seed newsletter and AI
+  seedNewsletterAndAI();
 }
 
 function seedRoles(): void {
