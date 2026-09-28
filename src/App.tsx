@@ -12,7 +12,8 @@ import { ResearchPage } from './pages/Research';
 import { VulnerabilitiesPage } from './pages/Vulnerabilities';
 import { EventsPage } from './pages/Events';
 import { SecurityAwarenessPage } from './pages/SecurityAwareness';
-import { ThreatIntelPage } from './pages/ThreatIntel';
+import { ThreatIntelligencePage } from './pages/ThreatIntelligence';
+import { IntelligenceDashboardPage } from './pages/IntelligenceDashboard';
 import { ToolsPage } from './pages/Tools';
 import { AcademyPage } from './pages/Academy';
 import { CommunityPage } from './pages/Community';
@@ -62,7 +63,8 @@ export default function App() {
                 <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/security-awareness" element={<SecurityAwarenessPage />} />
-                <Route path={ROUTES.THREAT_INTEL} element={<ThreatIntelPage />} />
+                <Route path={ROUTES.THREAT_INTEL} element={<ThreatIntelligencePage />} />
+                <Route path="/intelligence" element={<IntelligenceDashboardPage />} />
                 <Route path={ROUTES.TOOLS} element={<ToolsPage />} />
                 <Route path={ROUTES.ACADEMY} element={<AcademyPage />} />
                 <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />

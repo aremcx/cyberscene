@@ -13,6 +13,28 @@ import type {
   PaginationParams, SortParams, ArticleFilters, CommentFilters,
   AuditAction,
 } from './schema';
+
+import type {
+  ThreatActor,
+  Malware,
+  ThreatReport,
+  Indicator,
+  CreateThreatActorInput,
+  CreateMalwareInput,
+  CreateThreatReportInput,
+  CreateIndicatorInput,
+  ThreatActorFilters,
+  MalwareFilters,
+  ThreatReportFilters,
+  IndicatorFilters,
+} from './threatIntelSchema';
+
+import type {
+  Vulnerability,
+  CreateVulnerabilityInput,
+  UpdateVulnerabilityInput,
+  VulnerabilityFilters,
+} from './vulnerabilitySchema';
 import { generateId } from '../lib/utils';
 
 // ============================================
@@ -34,6 +56,11 @@ interface DatabaseState {
   notifications: Map<string, Notification>;
   auditLogs: Map<string, AuditLog>;
   revisions: Map<string, ArticleRevision>;
+  threatActors: Map<string, ThreatActor>;
+  malware: Map<string, Malware>;
+  threatReports: Map<string, ThreatReport>;
+  indicators: Map<string, Indicator>;
+  vulnerabilities: Map<string, Vulnerability>;
 }
 
 let state: DatabaseState = createEmptyState();
@@ -54,6 +81,11 @@ function createEmptyState(): DatabaseState {
     notifications: new Map(),
     auditLogs: new Map(),
     revisions: new Map(),
+    threatActors: new Map(),
+    malware: new Map(),
+    threatReports: new Map(),
+    indicators: new Map(),
+    vulnerabilities: new Map(),
   };
 }
 
@@ -87,6 +119,11 @@ export const db = {
       notifications: state.notifications.size,
       auditLogs: state.auditLogs.size,
       revisions: state.revisions.size,
+      threatActors: state.threatActors.size,
+      malware: state.malware.size,
+      threatReports: state.threatReports.size,
+      indicators: state.indicators.size,
+      vulnerabilities: state.vulnerabilities.size,
     };
   },
 
@@ -784,6 +821,414 @@ export const db = {
   getLatestRevision(articleId: string): ArticleRevision | null {
     const revisions = this.getArticleRevisions(articleId);
     return revisions.length > 0 ? revisions[0] : null;
+  },
+
+  // ============================================
+  // THREAT ACTORS
+  // ============================================
+
+  createThreatActor(input: CreateThreatActorInput): ThreatActor {
+    const now = new Date().toISOString();
+    const actor: ThreatActor = {
+      id: generateId(),
+      name: input.name,
+      aliases: input.aliases ?? [],
+      description: input.description,
+      classification: input.classification,
+      knownTargets: input.knownTargets ?? [],
+      geography: input.geography ?? [],
+      techniques: input.techniques ?? [],
+      references: input.references ?? [],
+      isActive: input.isActive ?? true,
+      firstSeen: input.firstSeen ?? null,
+      lastSeen: input.lastSeen ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.threatActors.set(actor.id, actor);
+    return actor;
+  },
+
+  getThreatActorById(id: string): ThreatActor | null {
+    return state.threatActors.get(id) ?? null;
+  },
+
+  listThreatActors(
+    pagination?: PaginationParams,
+    sort?: SortParams,
+    filters?: ThreatActorFilters
+  ): { data: ThreatActor[]; total: number } {
+    let actors = Array.from(state.threatActors.values());
+
+    if (filters) {
+      if (filters.classification) {
+        actors = actors.filter(a => a.classification === filters.classification);
+      }
+      if (filters.isActive !== undefined) {
+        actors = actors.filter(a => a.isActive === filters.isActive);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        actors = actors.filter(a =>
+          a.name.toLowerCase().includes(q) ||
+          a.description.toLowerCase().includes(q) ||
+          a.aliases.some(alias => alias.toLowerCase().includes(q))
+        );
+      }
+    }
+
+    actors = applySort(actors, sort);
+    return applyPagination(actors, pagination);
+  },
+
+  updateThreatActor(id: string, updates: Partial<ThreatActor>): ThreatActor {
+    const actor = state.threatActors.get(id);
+    if (!actor) throw new DatabaseError('NOT_FOUND', `Threat actor with id "${id}" not found.`);
+    const updated = { ...actor, ...updates, updatedAt: new Date().toISOString() };
+    state.threatActors.set(id, updated);
+    return updated;
+  },
+
+  deleteThreatActor(id: string): void {
+    if (!state.threatActors.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Threat actor with id "${id}" not found.`);
+    }
+    state.threatActors.delete(id);
+  },
+
+  // ============================================
+  // MALWARE
+  // ============================================
+
+  createMalware(input: CreateMalwareInput): Malware {
+    const now = new Date().toISOString();
+    const malware: Malware = {
+      id: generateId(),
+      name: input.name,
+      type: input.type,
+      description: input.description,
+      targets: input.targets ?? [],
+      associatedActors: input.associatedActors ?? [],
+      detectionInfo: input.detectionInfo,
+      mitigation: input.mitigation,
+      references: input.references ?? [],
+      firstSeen: input.firstSeen ?? null,
+      lastSeen: input.lastSeen ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.malware.set(malware.id, malware);
+    return malware;
+  },
+
+  getMalwareById(id: string): Malware | null {
+    return state.malware.get(id) ?? null;
+  },
+
+  listMalware(
+    pagination?: PaginationParams,
+    sort?: SortParams,
+    filters?: MalwareFilters
+  ): { data: Malware[]; total: number } {
+    let items = Array.from(state.malware.values());
+
+    if (filters) {
+      if (filters.type) {
+        items = items.filter(m => m.type === filters.type);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        items = items.filter(m =>
+          m.name.toLowerCase().includes(q) ||
+          m.description.toLowerCase().includes(q)
+        );
+      }
+    }
+
+    items = applySort(items, sort);
+    return applyPagination(items, pagination);
+  },
+
+  updateMalware(id: string, updates: Partial<Malware>): Malware {
+    const malware = state.malware.get(id);
+    if (!malware) throw new DatabaseError('NOT_FOUND', `Malware with id "${id}" not found.`);
+    const updated = { ...malware, ...updates, updatedAt: new Date().toISOString() };
+    state.malware.set(id, updated);
+    return updated;
+  },
+
+  deleteMalware(id: string): void {
+    if (!state.malware.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Malware with id "${id}" not found.`);
+    }
+    state.malware.delete(id);
+  },
+
+  // ============================================
+  // THREAT REPORTS
+  // ============================================
+
+  createThreatReport(input: CreateThreatReportInput): ThreatReport {
+    const now = new Date().toISOString();
+    const report: ThreatReport = {
+      id: generateId(),
+      title: input.title,
+      summary: input.summary,
+      threatActorId: input.threatActorId ?? null,
+      malwareIds: input.malwareIds ?? [],
+      targetSector: input.targetSector ?? [],
+      geography: input.geography ?? [],
+      techniques: input.techniques ?? [],
+      indicators: input.indicators ?? [],
+      detectionGuidance: input.detectionGuidance,
+      mitigation: input.mitigation,
+      references: input.references ?? [],
+      publicationDate: input.publicationDate,
+      severity: input.severity,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.threatReports.set(report.id, report);
+    return report;
+  },
+
+  getThreatReportById(id: string): ThreatReport | null {
+    return state.threatReports.get(id) ?? null;
+  },
+
+  listThreatReports(
+    pagination?: PaginationParams,
+    sort?: SortParams,
+    filters?: ThreatReportFilters
+  ): { data: ThreatReport[]; total: number } {
+    let reports = Array.from(state.threatReports.values());
+
+    if (filters) {
+      if (filters.severity) {
+        reports = reports.filter(r => r.severity === filters.severity);
+      }
+      if (filters.threatActorId) {
+        reports = reports.filter(r => r.threatActorId === filters.threatActorId);
+      }
+      if (filters.targetSector) {
+        reports = reports.filter(r => r.targetSector.includes(filters.targetSector!));
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        reports = reports.filter(r =>
+          r.title.toLowerCase().includes(q) ||
+          r.summary.toLowerCase().includes(q)
+        );
+      }
+      if (filters.dateFrom) {
+        reports = reports.filter(r => new Date(r.publicationDate) >= new Date(filters.dateFrom!));
+      }
+      if (filters.dateTo) {
+        reports = reports.filter(r => new Date(r.publicationDate) <= new Date(filters.dateTo!));
+      }
+    }
+
+    reports = applySort(reports, sort);
+    return applyPagination(reports, pagination);
+  },
+
+  updateThreatReport(id: string, updates: Partial<ThreatReport>): ThreatReport {
+    const report = state.threatReports.get(id);
+    if (!report) throw new DatabaseError('NOT_FOUND', `Threat report with id "${id}" not found.`);
+    const updated = { ...report, ...updates, updatedAt: new Date().toISOString() };
+    state.threatReports.set(id, updated);
+    return updated;
+  },
+
+  deleteThreatReport(id: string): void {
+    if (!state.threatReports.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Threat report with id "${id}" not found.`);
+    }
+    state.threatReports.delete(id);
+  },
+
+  // ============================================
+  // INDICATORS
+  // ============================================
+
+  createIndicator(input: CreateIndicatorInput): Indicator {
+    const now = new Date().toISOString();
+    const indicator: Indicator = {
+      id: generateId(),
+      type: input.type,
+      value: input.value,
+      description: input.description,
+      severity: input.severity,
+      firstSeen: input.firstSeen ?? null,
+      lastSeen: input.lastSeen ?? null,
+      context: input.context,
+      references: input.references ?? [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.indicators.set(indicator.id, indicator);
+    return indicator;
+  },
+
+  getIndicatorById(id: string): Indicator | null {
+    return state.indicators.get(id) ?? null;
+  },
+
+  listIndicators(
+    pagination?: PaginationParams,
+    sort?: SortParams,
+    filters?: IndicatorFilters
+  ): { data: Indicator[]; total: number } {
+    let indicators = Array.from(state.indicators.values());
+
+    if (filters) {
+      if (filters.type) {
+        indicators = indicators.filter(i => i.type === filters.type);
+      }
+      if (filters.severity) {
+        indicators = indicators.filter(i => i.severity === filters.severity);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        indicators = indicators.filter(i =>
+          i.value.toLowerCase().includes(q) ||
+          i.description.toLowerCase().includes(q)
+        );
+      }
+    }
+
+    indicators = applySort(indicators, sort);
+    return applyPagination(indicators, pagination);
+  },
+
+  updateIndicator(id: string, updates: Partial<Indicator>): Indicator {
+    const indicator = state.indicators.get(id);
+    if (!indicator) throw new DatabaseError('NOT_FOUND', `Indicator with id "${id}" not found.`);
+    const updated = { ...indicator, ...updates, updatedAt: new Date().toISOString() };
+    state.indicators.set(id, updated);
+    return updated;
+  },
+
+  deleteIndicator(id: string): void {
+    if (!state.indicators.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Indicator with id "${id}" not found.`);
+    }
+    state.indicators.delete(id);
+  },
+
+  // ============================================
+  // VULNERABILITIES
+  // ============================================
+
+  createVulnerability(input: CreateVulnerabilityInput): Vulnerability {
+    // Check for duplicate CVE ID
+    for (const v of state.vulnerabilities.values()) {
+      if (v.cveId === input.cveId) {
+        throw new DatabaseError('UNIQUE_CONSTRAINT', `Vulnerability with CVE ID "${input.cveId}" already exists.`);
+      }
+    }
+
+    const now = new Date().toISOString();
+    const vuln: Vulnerability = {
+      id: generateId(),
+      cveId: input.cveId,
+      title: input.title,
+      description: input.description,
+      severity: input.severity,
+      cvssScore: input.cvssScore,
+      cvssVector: input.cvssVector,
+      vendor: input.vendor,
+      product: input.product,
+      affectedVersions: input.affectedVersions,
+      publishedDate: input.publishedDate,
+      updatedDate: input.updatedDate,
+      remediation: input.remediation,
+      references: input.references ?? [],
+      status: input.status ?? 'analyzing' as Vulnerability['status'],
+      isExploited: input.isExploited ?? false,
+      relatedArticles: input.relatedArticles ?? [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.vulnerabilities.set(vuln.id, vuln);
+    return vuln;
+  },
+
+  getVulnerabilityById(id: string): Vulnerability | null {
+    return state.vulnerabilities.get(id) ?? null;
+  },
+
+  getVulnerabilityByCveId(cveId: string): Vulnerability | null {
+    for (const vuln of state.vulnerabilities.values()) {
+      if (vuln.cveId === cveId) return vuln;
+    }
+    return null;
+  },
+
+  listVulnerabilities(
+    pagination?: PaginationParams,
+    sort?: SortParams,
+    filters?: VulnerabilityFilters
+  ): { data: Vulnerability[]; total: number } {
+    let vulns = Array.from(state.vulnerabilities.values());
+
+    if (filters) {
+      if (filters.severity) {
+        vulns = vulns.filter(v => v.severity === filters.severity);
+      }
+      if (filters.vendor) {
+        vulns = vulns.filter(v => v.vendor.toLowerCase().includes(filters.vendor!.toLowerCase()));
+      }
+      if (filters.product) {
+        vulns = vulns.filter(v => v.product.toLowerCase().includes(filters.product!.toLowerCase()));
+      }
+      if (filters.isExploited !== undefined) {
+        vulns = vulns.filter(v => v.isExploited === filters.isExploited);
+      }
+      if (filters.status) {
+        vulns = vulns.filter(v => v.status === filters.status);
+      }
+      if (filters.publishedAfter) {
+        vulns = vulns.filter(v => new Date(v.publishedDate) >= new Date(filters.publishedAfter!));
+      }
+      if (filters.publishedBefore) {
+        vulns = vulns.filter(v => new Date(v.publishedDate) <= new Date(filters.publishedBefore!));
+      }
+      if (filters.cvssMin !== undefined) {
+        vulns = vulns.filter(v => v.cvssScore >= filters.cvssMin!);
+      }
+      if (filters.cvssMax !== undefined) {
+        vulns = vulns.filter(v => v.cvssScore <= filters.cvssMax!);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        vulns = vulns.filter(v =>
+          v.cveId.toLowerCase().includes(q) ||
+          v.title.toLowerCase().includes(q) ||
+          v.description.toLowerCase().includes(q) ||
+          v.vendor.toLowerCase().includes(q) ||
+          v.product.toLowerCase().includes(q)
+        );
+      }
+    }
+
+    vulns = applySort(vulns, sort);
+    return applyPagination(vulns, pagination);
+  },
+
+  updateVulnerability(id: string, input: UpdateVulnerabilityInput): Vulnerability {
+    const vuln = state.vulnerabilities.get(id);
+    if (!vuln) throw new DatabaseError('NOT_FOUND', `Vulnerability with id "${id}" not found.`);
+    const updated = { ...vuln, ...input, updatedAt: new Date().toISOString() };
+    state.vulnerabilities.set(id, updated);
+    return updated;
+  },
+
+  deleteVulnerability(id: string): void {
+    if (!state.vulnerabilities.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Vulnerability with id "${id}" not found.`);
+    }
+    state.vulnerabilities.delete(id);
   },
 };
 

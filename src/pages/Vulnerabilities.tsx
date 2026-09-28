@@ -1,97 +1,95 @@
-import { useState } from 'react';
-import { VulnerabilityCard } from '../components/content/VulnerabilityCard';
-import { Input, Select, Tabs, EmptyState } from '../components/ui';
+import { useState, useEffect } from 'react';
+import { db } from '../db/store';
+import { VulnerabilityCard } from '../components/threat/VulnerabilityCard';
+import { Input, Select, EmptyState, Badge } from '../components/ui';
+import { VulnerabilitySeverity } from '../db/vulnerabilitySchema';
+import type { Vulnerability } from '../db/vulnerabilitySchema';
 
 export function VulnerabilitiesPage() {
+  const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [severityFilter, setSeverityFilter] = useState('all');
-  const [activeTab, setActiveTab] = useState('recent');
+  const [severityFilter, setSeverityFilter] = useState<string>('all');
+  const [vendorFilter, setVendorFilter] = useState<string>('all');
+  const [exploitedFilter, setExploitedFilter] = useState<string>('all');
 
-  // Demo vulnerability data
-  const vulnerabilities = [
-    {
-      cveId: 'CVE-2024-1234',
-      title: 'Remote Code Execution in Apache HTTP Server',
-      severity: 'critical' as const,
-      cvssScore: 9.8,
-      affectedProducts: ['Apache 2.4.x'],
-      publishedDate: '2024-01-15',
-    },
-    {
-      cveId: 'CVE-2024-5678',
-      title: 'SQL Injection in WordPress Plugin',
-      severity: 'high' as const,
-      cvssScore: 8.1,
-      affectedProducts: ['WordPress', 'Plugin X'],
-      publishedDate: '2024-01-14',
-    },
-    {
-      cveId: 'CVE-2024-9012',
-      title: 'Privilege Escalation in Linux Kernel',
-      severity: 'high' as const,
-      cvssScore: 7.8,
-      affectedProducts: ['Linux Kernel 5.x'],
-      publishedDate: '2024-01-13',
-    },
-    {
-      cveId: 'CVE-2024-3456',
-      title: 'Cross-Site Scripting in React Library',
-      severity: 'medium' as const,
-      cvssScore: 6.1,
-      affectedProducts: ['React 18.x'],
-      publishedDate: '2024-01-12',
-    },
-    {
-      cveId: 'CVE-2024-7890',
-      title: 'Denial of Service in Nginx',
-      severity: 'medium' as const,
-      cvssScore: 5.3,
-      affectedProducts: ['Nginx 1.x'],
-      publishedDate: '2024-01-11',
-    },
-    {
-      cveId: 'CVE-2024-2345',
-      title: 'Information Disclosure in OpenSSL',
-      severity: 'low' as const,
-      cvssScore: 3.7,
-      affectedProducts: ['OpenSSL 3.x'],
-      publishedDate: '2024-01-10',
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const filteredVulnerabilities = vulnerabilities.filter((vuln) => {
+  const loadData = () => {
+    const result = db.listVulnerabilities({ page: 1, pageSize: 100 });
+    setVulnerabilities(result.data);
+  };
+
+  const filteredVulnerabilities = vulnerabilities.filter(vuln => {
     const matchesSearch = searchQuery === '' || 
       vuln.cveId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vuln.title.toLowerCase().includes(searchQuery.toLowerCase());
+      vuln.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vuln.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vuln.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vuln.product.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesSeverity = severityFilter === 'all' || vuln.severity === severityFilter;
-    
-    return matchesSearch && matchesSeverity;
+    const matchesSeverity = severityFilter === 'all' || 
+      vuln.severity === severityFilter;
+
+    const matchesVendor = vendorFilter === 'all' || 
+      vuln.vendor.toLowerCase().includes(vendorFilter.toLowerCase());
+
+    const matchesExploited = exploitedFilter === 'all' || 
+      (exploitedFilter === 'yes' && vuln.isExploited) ||
+      (exploitedFilter === 'no' && !vuln.isExploited);
+
+    return matchesSearch && matchesSeverity && matchesVendor && matchesExploited;
   });
 
-  const tabs = [
-    { id: 'recent', label: 'Recent', count: vulnerabilities.length },
-    { id: 'critical', label: 'Critical', count: vulnerabilities.filter(v => v.severity === 'critical').length },
-    { id: 'high', label: 'High', count: vulnerabilities.filter(v => v.severity === 'high').length },
-  ];
+  // Get unique vendors
+  const vendors = Array.from(new Set(vulnerabilities.map(v => v.vendor))).sort();
+
+  // Calculate severity distribution
+  const severityCounts = {
+    critical: vulnerabilities.filter(v => v.severity === VulnerabilitySeverity.CRITICAL).length,
+    high: vulnerabilities.filter(v => v.severity === VulnerabilitySeverity.HIGH).length,
+    medium: vulnerabilities.filter(v => v.severity === VulnerabilitySeverity.MEDIUM).length,
+    low: vulnerabilities.filter(v => v.severity === VulnerabilitySeverity.LOW).length,
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-3xl">🛡️</span>
-          <h1 className="text-3xl font-bold text-white">Vulnerabilities</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-white mb-2">Vulnerability Intelligence</h1>
         <p className="text-gray-400">
-          CVE database and vulnerability intelligence for security professionals.
+          Comprehensive CVE database with severity ratings, CVSS scores, and remediation guidance.
         </p>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/30">
+          <div className="text-2xl font-bold text-white">{vulnerabilities.length}</div>
+          <div className="text-sm text-gray-500">Total CVEs</div>
+        </div>
+        <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5">
+          <div className="text-2xl font-bold text-red-400">{severityCounts.critical}</div>
+          <div className="text-sm text-gray-500">Critical</div>
+        </div>
+        <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5">
+          <div className="text-2xl font-bold text-orange-400">{severityCounts.high}</div>
+          <div className="text-sm text-gray-500">High</div>
+        </div>
+        <div className="p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+          <div className="text-2xl font-bold text-yellow-400">{severityCounts.medium}</div>
+          <div className="text-sm text-gray-500">Medium</div>
+        </div>
+        <div className="p-4 rounded-xl border border-green-500/20 bg-green-500/5">
+          <div className="text-2xl font-bold text-green-400">{severityCounts.low}</div>
+          <div className="text-sm text-gray-500">Low</div>
+        </div>
+      </div>
+
       {/* Search and Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Input
-          placeholder="Search CVE ID or title..."
+          placeholder="Search CVE, title, vendor, product..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           icon={
@@ -105,63 +103,58 @@ export function VulnerabilitiesPage() {
           onChange={(e) => setSeverityFilter(e.target.value)}
           options={[
             { value: 'all', label: 'All Severities' },
-            { value: 'critical', label: 'Critical' },
-            { value: 'high', label: 'High' },
-            { value: 'medium', label: 'Medium' },
-            { value: 'low', label: 'Low' },
+            { value: VulnerabilitySeverity.CRITICAL, label: 'Critical' },
+            { value: VulnerabilitySeverity.HIGH, label: 'High' },
+            { value: VulnerabilitySeverity.MEDIUM, label: 'Medium' },
+            { value: VulnerabilitySeverity.LOW, label: 'Low' },
           ]}
         />
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <span className="font-medium text-white">{filteredVulnerabilities.length}</span>
-          vulnerabilities found
-        </div>
+        <Select
+          value={vendorFilter}
+          onChange={(e) => setVendorFilter(e.target.value)}
+          options={[
+            { value: 'all', label: 'All Vendors' },
+            ...vendors.map(v => ({ value: v, label: v })),
+          ]}
+        />
+        <Select
+          value={exploitedFilter}
+          onChange={(e) => setExploitedFilter(e.target.value)}
+          options={[
+            { value: 'all', label: 'All Vulnerabilities' },
+            { value: 'yes', label: 'Exploited in Wild' },
+            { value: 'no', label: 'Not Exploited' },
+          ]}
+        />
       </div>
 
-      {/* Tabs */}
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-8" />
+      {/* Results count */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="text-sm text-gray-400">
+          Showing <span className="font-medium text-white">{filteredVulnerabilities.length}</span> of{' '}
+          <span className="font-medium text-white">{vulnerabilities.length}</span> vulnerabilities
+        </div>
+        {vulnerabilities.filter(v => v.isExploited).length > 0 && (
+          <Badge variant="danger" size="md">
+            🔥 {vulnerabilities.filter(v => v.isExploited).length} actively exploited
+          </Badge>
+        )}
+      </div>
 
-      {/* Vulnerabilities List */}
+      {/* Vulnerabilities Grid */}
       {filteredVulnerabilities.length > 0 ? (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredVulnerabilities.map((vuln) => (
-            <VulnerabilityCard key={vuln.cveId} {...vuln} />
+            <VulnerabilityCard key={vuln.id} vulnerability={vuln} />
           ))}
         </div>
       ) : (
         <EmptyState
-          icon="🔍"
+          icon="🛡️"
           title="No vulnerabilities found"
-          description="Try adjusting your search or filters."
+          description="Try adjusting your search or filters"
         />
       )}
-
-      {/* Info Box */}
-      <div className="mt-12 p-6 rounded-xl border border-gray-800 bg-gray-900/30">
-        <h3 className="text-lg font-semibold text-white mb-2">About CVE Database</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Our vulnerability database aggregates CVE entries from multiple sources including NVD, 
-          vendor advisories, and security research communities. All entries are verified and 
-          enriched with additional context.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-red-400">12</div>
-            <div className="text-xs text-gray-500">Critical</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-orange-400">28</div>
-            <div className="text-xs text-gray-500">High</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-amber-400">45</div>
-            <div className="text-xs text-gray-500">Medium</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-blue-400">23</div>
-            <div className="text-xs text-gray-500">Low</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

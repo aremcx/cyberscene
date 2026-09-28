@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { label: 'Tutorials', path: '/tutorials' },
   { label: 'Research', path: '/research' },
   { label: 'Threats', path: ROUTES.THREAT_INTEL },
+  { label: 'Intelligence', path: '/intelligence' },
   { label: 'Tools', path: ROUTES.TOOLS },
   { label: 'Academy', path: ROUTES.ACADEMY },
   { label: 'Community', path: ROUTES.COMMUNITY },

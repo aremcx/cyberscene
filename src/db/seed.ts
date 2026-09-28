@@ -13,6 +13,11 @@ import type {
   CreateArticleInput, CreateUserInput, CreateCategoryInput, CreateTagInput, CreateCommentInput,
 } from './schema';
 import { hashPassword } from '../lib/crypto';
+import { seedThreatIntelligence } from './seedThreatIntel';
+import { seedVulnerabilities } from './seedVulnerabilities';
+
+// Re-export for convenience
+export { seedThreatIntelligence, seedVulnerabilities };
 
 // ============================================
 // SEED DATA
@@ -60,6 +65,10 @@ export async function seedDatabase(): Promise<void> {
   seedBookmarks();
   seedNotifications();
   seedAuditLogs();
+  
+  // Seed threat intelligence and vulnerabilities
+  seedThreatIntelligence();
+  seedVulnerabilities();
 }
 
 function seedRoles(): void {
