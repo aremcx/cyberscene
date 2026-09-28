@@ -210,58 +210,274 @@ async function seedUsers(): Promise<void> {
 }
 
 function seedCategories(): void {
-  const categories: CreateCategoryInput[] = [
-    { name: 'Threat Analysis', slug: 'threat-analysis', description: 'Analysis of current and emerging cyber threats' },
-    { name: 'Penetration Testing', slug: 'penetration-testing', description: 'Guides and tutorials on penetration testing methodologies' },
-    { name: 'Web Security', slug: 'web-security', description: 'Web application security topics and vulnerabilities' },
-    { name: 'Network Security', slug: 'network-security', description: 'Network security architectures and protocols' },
-    { name: 'Cloud Security', slug: 'cloud-security', description: 'Securing cloud infrastructure and services' },
-    { name: 'Cryptography', slug: 'cryptography', description: 'Encryption, hashing, and cryptographic protocols' },
-    { name: 'Incident Response', slug: 'incident-response', description: 'IR procedures, forensics, and post-incident analysis' },
-    { name: 'DevSecOps', slug: 'devsecops', description: 'Integrating security into development pipelines' },
-    { name: 'Malware Analysis', slug: 'malware-analysis', description: 'Reverse engineering and malware research' },
-    { name: 'Compliance', slug: 'compliance', description: 'Regulatory frameworks and compliance standards' },
-    { name: 'Career', slug: 'career', description: 'Cybersecurity career guidance and professional development' },
-    { name: 'News', slug: 'news', description: 'Latest cybersecurity news and developments' },
-  ];
+  // Create parent categories first
+  const fundamentals = db.createCategory({
+    name: 'Cybersecurity Fundamentals',
+    slug: 'cybersecurity-fundamentals',
+    description: 'Core cybersecurity concepts, principles, and foundational knowledge'
+  });
 
-  for (const c of categories) {
-    db.createCategory(c);
-  }
+  const defensive = db.createCategory({
+    name: 'Blue Team',
+    slug: 'blue-team',
+    description: 'Defensive security operations, monitoring, and incident response'
+  });
+
+  const offensive = db.createCategory({
+    name: 'Red Team',
+    slug: 'red-team',
+    description: 'Offensive security, penetration testing, and ethical hacking'
+  });
+
+  const threatIntel = db.createCategory({
+    name: 'Threat Intelligence',
+    slug: 'threat-intelligence',
+    description: 'Threat analysis, intelligence gathering, and adversary tracking'
+  });
+
+  const domainSecurity = db.createCategory({
+    name: 'Domain Security',
+    slug: 'domain-security',
+    description: 'Security across different technology domains'
+  });
+
+  const governance = db.createCategory({
+    name: 'Governance & Compliance',
+    slug: 'governance-compliance',
+    description: 'Security governance, risk management, and regulatory compliance'
+  });
+
+  const awareness = db.createCategory({
+    name: 'Security Awareness',
+    slug: 'security-awareness',
+    description: 'Security education, training, and awareness programs'
+  });
+
+  const careers = db.createCategory({
+    name: 'Careers',
+    slug: 'careers',
+    description: 'Cybersecurity career development and professional growth'
+  });
+
+  const regional = db.createCategory({
+    name: 'Regional Focus',
+    slug: 'regional-focus',
+    description: 'Cybersecurity developments in specific regions'
+  });
+
+  // Create subcategories
+  db.createCategory({
+    name: 'SOC',
+    slug: 'soc',
+    description: 'Security Operations Center operations and monitoring',
+    parentId: defensive.id
+  });
+
+  db.createCategory({
+    name: 'DFIR',
+    slug: 'dfir',
+    description: 'Digital Forensics and Incident Response',
+    parentId: defensive.id
+  });
+
+  db.createCategory({
+    name: 'Malware',
+    slug: 'malware',
+    description: 'Malware analysis, reverse engineering, and threat research',
+    parentId: threatIntel.id
+  });
+
+  db.createCategory({
+    name: 'Network Security',
+    slug: 'network-security',
+    description: 'Network security architectures, protocols, and defenses',
+    parentId: domainSecurity.id
+  });
+
+  db.createCategory({
+    name: 'Cloud Security',
+    slug: 'cloud-security',
+    description: 'Securing cloud infrastructure and services',
+    parentId: domainSecurity.id
+  });
+
+  db.createCategory({
+    name: 'Web Security',
+    slug: 'web-security',
+    description: 'Web application security and vulnerabilities',
+    parentId: domainSecurity.id
+  });
+
+  db.createCategory({
+    name: 'Application Security',
+    slug: 'application-security',
+    description: 'Secure software development and application security testing',
+    parentId: domainSecurity.id
+  });
+
+  db.createCategory({
+    name: 'Mobile Security',
+    slug: 'mobile-security',
+    description: 'Mobile device and application security',
+    parentId: domainSecurity.id
+  });
+
+  db.createCategory({
+    name: 'AI Security',
+    slug: 'ai-security',
+    description: 'Security of AI/ML systems and AI for security',
+    parentId: domainSecurity.id
+  });
+
+  db.createCategory({
+    name: 'GRC',
+    slug: 'grc',
+    description: 'Governance, Risk, and Compliance',
+    parentId: governance.id
+  });
+
+  db.createCategory({
+    name: 'Privacy',
+    slug: 'privacy',
+    description: 'Data privacy, protection, and compliance',
+    parentId: governance.id
+  });
+
+  db.createCategory({
+    name: 'Nigeria Cybersecurity',
+    slug: 'nigeria-cybersecurity',
+    description: 'Cybersecurity developments and initiatives in Nigeria',
+    parentId: regional.id
+  });
+
+  db.createCategory({
+    name: 'African Cybersecurity',
+    slug: 'african-cybersecurity',
+    description: 'Cybersecurity across the African continent',
+    parentId: regional.id
+  });
 }
 
 function seedTags(): void {
   const tags: CreateTagInput[] = [
-    { name: 'OWASP', slug: 'owasp' },
-    { name: 'CVE', slug: 'cve' },
-    { name: 'Ransomware', slug: 'ransomware' },
-    { name: 'Phishing', slug: 'phishing' },
-    { name: 'Zero-Day', slug: 'zero-day' },
-    { name: 'APT', slug: 'apt' },
-    { name: 'Kali Linux', slug: 'kali-linux' },
-    { name: 'Burp Suite', slug: 'burp-suite' },
-    { name: 'Nmap', slug: 'nmap' },
-    { name: 'Metasploit', slug: 'metasploit' },
-    { name: 'Python', slug: 'python' },
-    { name: 'Linux', slug: 'linux' },
+    // Operating Systems
     { name: 'Windows', slug: 'windows' },
+    { name: 'Linux', slug: 'linux' },
+    { name: 'macOS', slug: 'macos' },
+    { name: 'Active Directory', slug: 'active-directory' },
+    
+    // Cloud Platforms
     { name: 'AWS', slug: 'aws' },
     { name: 'Azure', slug: 'azure' },
+    { name: 'GCP', slug: 'gcp' },
+    { name: 'Cloud Security', slug: 'cloud-security' },
+    
+    // Containerization & Orchestration
     { name: 'Docker', slug: 'docker' },
     { name: 'Kubernetes', slug: 'kubernetes' },
+    { name: 'Container Security', slug: 'container-security' },
+    
+    // Programming Languages
+    { name: 'Python', slug: 'python' },
+    { name: 'JavaScript', slug: 'javascript' },
+    { name: 'Go', slug: 'go' },
+    { name: 'Rust', slug: 'rust' },
+    { name: 'PowerShell', slug: 'powershell' },
+    { name: 'Bash', slug: 'bash' },
+    
+    // Security Tools
+    { name: 'Burp Suite', slug: 'burp-suite' },
+    { name: 'Metasploit', slug: 'metasploit' },
+    { name: 'Nmap', slug: 'nmap' },
+    { name: 'Wireshark', slug: 'wireshark' },
+    { name: 'Kali Linux', slug: 'kali-linux' },
+    { name: 'Splunk', slug: 'splunk' },
+    { name: 'ELK Stack', slug: 'elk-stack' },
+    
+    // Security Concepts
     { name: 'SIEM', slug: 'siem' },
     { name: 'SOC', slug: 'soc' },
+    { name: 'EDR', slug: 'edr' },
+    { name: 'IDS/IPS', slug: 'ids-ips' },
+    { name: 'Zero Trust', slug: 'zero-trust' },
+    { name: 'DevSecOps', slug: 'devsecops' },
+    { name: 'Threat Hunting', slug: 'threat-hunting' },
+    { name: 'Vulnerability Management', slug: 'vulnerability-management' },
+    
+    // Attack Types
+    { name: 'Ransomware', slug: 'ransomware' },
+    { name: 'Phishing', slug: 'phishing' },
+    { name: 'Social Engineering', slug: 'social-engineering' },
+    { name: 'DDoS', slug: 'ddos' },
+    { name: 'SQL Injection', slug: 'sql-injection' },
+    { name: 'XSS', slug: 'xss' },
+    { name: 'CSRF', slug: 'csrf' },
+    { name: 'Zero-Day', slug: 'zero-day' },
+    { name: 'APT', slug: 'apt' },
+    { name: 'Insider Threat', slug: 'insider-threat' },
+    
+    // Defensive Security
+    { name: 'Incident Response', slug: 'incident-response' },
+    { name: 'Digital Forensics', slug: 'digital-forensics' },
+    { name: 'Malware Analysis', slug: 'malware-analysis' },
+    { name: 'Reverse Engineering', slug: 'reverse-engineering' },
+    { name: 'Threat Intelligence', slug: 'threat-intelligence' },
+    { name: 'OSINT', slug: 'osint' },
+    
+    // Offensive Security
+    { name: 'Penetration Testing', slug: 'penetration-testing' },
     { name: 'Red Team', slug: 'red-team' },
     { name: 'Blue Team', slug: 'blue-team' },
-    { name: 'DFIR', slug: 'dfir' },
-    { name: 'OSINT', slug: 'osint' },
+    { name: 'Purple Team', slug: 'purple-team' },
     { name: 'Bug Bounty', slug: 'bug-bounty' },
+    { name: 'Vulnerability Research', slug: 'vulnerability-research' },
+    
+    // Compliance & Standards
     { name: 'ISO 27001', slug: 'iso-27001' },
     { name: 'NIST', slug: 'nist' },
     { name: 'GDPR', slug: 'gdpr' },
+    { name: 'PCI DSS', slug: 'pci-dss' },
+    { name: 'HIPAA', slug: 'hipaa' },
+    { name: 'SOC 2', slug: 'soc-2' },
+    
+    // Web Technologies
+    { name: 'OWASP', slug: 'owasp' },
+    { name: 'REST API', slug: 'rest-api' },
+    { name: 'GraphQL', slug: 'graphql' },
+    { name: 'OAuth', slug: 'oauth' },
+    { name: 'JWT', slug: 'jwt' },
+    
+    // Network Technologies
+    { name: 'TCP/IP', slug: 'tcp-ip' },
+    { name: 'DNS', slug: 'dns' },
+    { name: 'VPN', slug: 'vpn' },
+    { name: 'Firewall', slug: 'firewall' },
+    { name: 'Proxy', slug: 'proxy' },
+    
+    // Cryptography
+    { name: 'Encryption', slug: 'encryption' },
+    { name: 'PKI', slug: 'pki' },
+    { name: 'SSL/TLS', slug: 'ssl-tls' },
+    { name: 'Hashing', slug: 'hashing' },
+    
+    // Content Types
     { name: 'Tutorial', slug: 'tutorial' },
     { name: 'Guide', slug: 'guide' },
     { name: 'Research', slug: 'research' },
+    { name: 'Case Study', slug: 'case-study' },
+    { name: 'News', slug: 'news' },
+    { name: 'Opinion', slug: 'opinion' },
+    
+    // Difficulty Levels
+    { name: 'Beginner', slug: 'beginner' },
+    { name: 'Intermediate', slug: 'intermediate' },
+    { name: 'Advanced', slug: 'advanced' },
+    { name: 'Expert', slug: 'expert' },
+    
+    // Regional
+    { name: 'Africa', slug: 'africa' },
+    { name: 'Nigeria', slug: 'nigeria' },
+    { name: 'Global', slug: 'global' },
   ];
 
   for (const t of tags) {
@@ -315,7 +531,7 @@ Before encryption, modern groups exfiltrate data to leverage in double-extortion
       contentType: ContentType.ARTICLE,
       status: ArticleStatus.PUBLISHED,
       authorId: DEMO_USERS.AUTHOR_1,
-      categoryId: getCategory('threat-analysis')?.id,
+      categoryId: getCategory('threat-intelligence')?.id,
       publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       isFeatured: true,
       createdById: DEMO_USERS.AUTHOR_1,
@@ -365,7 +581,7 @@ Automated vulnerability scanner that identifies common web vulnerabilities.
       contentType: ContentType.TUTORIAL,
       status: ArticleStatus.PUBLISHED,
       authorId: DEMO_USERS.AUTHOR_1,
-      categoryId: getCategory('penetration-testing')?.id,
+      categoryId: getCategory('red-team')?.id,
       publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       isFeatured: true,
       createdById: DEMO_USERS.AUTHOR_1,
@@ -498,7 +714,7 @@ Always operate within legal boundaries. OSINT gathering must respect:
       contentType: ContentType.ARTICLE,
       status: ArticleStatus.PUBLISHED,
       authorId: DEMO_USERS.AUTHOR_1,
-      categoryId: getCategory('incident-response')?.id,
+      categoryId: getCategory('dfir')?.id,
       publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
       isFeatured: false,
       createdById: DEMO_USERS.AUTHOR_1,
@@ -642,7 +858,7 @@ def check_cve(cve_id):
       contentType: ContentType.TUTORIAL,
       status: ArticleStatus.PUBLISHED,
       authorId: DEMO_USERS.CONTRIBUTOR,
-      categoryId: getCategory('penetration-testing')?.id,
+      categoryId: getCategory('red-team')?.id,
       publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
       isFeatured: false,
       createdById: DEMO_USERS.CONTRIBUTOR,
@@ -733,7 +949,7 @@ Have pre-drafted communications ready for:
       contentType: ContentType.RESEARCH,
       status: ArticleStatus.DRAFT,
       authorId: DEMO_USERS.AUTHOR_2,
-      categoryId: getCategory('threat-analysis')?.id,
+      categoryId: getCategory('threat-intelligence')?.id,
       createdById: DEMO_USERS.AUTHOR_2,
       updatedById: DEMO_USERS.AUTHOR_2,
     },
@@ -744,13 +960,13 @@ Have pre-drafted communications ready for:
 
     // Add tags
     const tagMappings: Record<string, string[]> = {
-      'understanding-ransomware-attack-chains-2024': ['ransomware', 'apt', 'threat-analysis'],
-      'burp-suite-beginner-guide-web-app-testing': ['burp-suite', 'tutorial', 'web-security'],
-      'securing-kubernetes-clusters-production': ['kubernetes', 'docker', 'aws', 'cloud-security'],
-      'osint-techniques-cybersecurity-investigations': ['osint', 'dfir', 'guide'],
-      'zero-trust-architecture-implementation-guide': ['guide', 'network-security'],
-      'python-scripting-security-automation': ['python', 'tutorial', 'red-team'],
-      'incident-response-playbook-ransomware': ['ransomware', 'blue-team', 'soc'],
+      'understanding-ransomware-attack-chains-2024': ['ransomware', 'apt', 'threat-intelligence', 'incident-response'],
+      'burp-suite-beginner-guide-web-app-testing': ['burp-suite', 'tutorial', 'penetration-testing', 'web-security'],
+      'securing-kubernetes-clusters-production': ['kubernetes', 'docker', 'aws', 'cloud-security', 'container-security'],
+      'osint-techniques-cybersecurity-investigations': ['osint', 'digital-forensics', 'guide', 'threat-hunting'],
+      'zero-trust-architecture-implementation-guide': ['guide', 'zero-trust', 'network-security'],
+      'python-scripting-security-automation': ['python', 'tutorial', 'automation', 'bash'],
+      'incident-response-playbook-ransomware': ['ransomware', 'blue-team', 'soc', 'incident-response'],
     };
 
     const articleTags = tagMappings[articleData.slug] || [];

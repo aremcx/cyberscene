@@ -17,6 +17,7 @@ import { ToolsPage } from './pages/Tools';
 import { AcademyPage } from './pages/Academy';
 import { CommunityPage } from './pages/Community';
 import { JobsPage } from './pages/Jobs';
+import { SearchResults } from './components/search/SearchResults';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
@@ -66,6 +67,7 @@ export default function App() {
                 <Route path={ROUTES.ACADEMY} element={<AcademyPage />} />
                 <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />
                 <Route path={ROUTES.JOBS} element={<JobsPage />} />
+                <Route path="/search" element={<SearchResults />} />
 
                 {/* Auth Routes */}
                 <Route path={ROUTES.LOGIN} element={<LoginPage />} />
