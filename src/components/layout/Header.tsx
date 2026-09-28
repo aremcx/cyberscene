@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: 'Academy', path: ROUTES.ACADEMY },
   { label: 'Community', path: ROUTES.COMMUNITY },
   { label: 'Jobs', path: ROUTES.JOBS },
+  { label: 'DB Demo', path: ROUTES.DEMO_DATABASE },
 ];
 
 export function Header() {

@@ -67,6 +67,9 @@ export const ROUTES = {
   ADMIN_ROLES: '/admin/roles',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_AUDIT: '/admin/audit',
+
+  // Demo
+  DEMO_DATABASE: '/demo/database',
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;

@@ -1,0 +1,300 @@
+// This is the Prisma schema for CyberVault
+// It serves as the source of truth for the database design.
+// In production, this would be used with `prisma migrate` against a PostgreSQL database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  super_admin
+  admin
+  editor
+  author
+  contributor
+  moderator
+  user
+}
+
+enum ArticleStatus {
+  draft
+  pending_review
+  published
+  archived
+}
+
+enum ContentType {
+  article
+  tutorial
+  news
+  research
+  threat_intel
+  tool_review
+}
+
+enum CommentStatus {
+  pending
+  approved
+  rejected
+}
+
+enum NotificationType {
+  comment_reply
+  article_published
+  mention
+  system
+  role_change
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+  login
+  logout
+  role_change
+  permission_change
+  password_reset
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  displayName   String    @map("display_name")
+  avatarUrl     String?   @map("avatar_url")
+  bio           String?
+  isActive      Boolean   @default(true) @map("is_active")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  roles         UserRole[]
+  articles      Article[]       @relation("ArticleAuthor")
+  articlesCreated Article[]     @relation("ArticleCreatedBy")
+  articlesUpdated Article[]     @relation("ArticleUpdatedBy")
+  comments      Comment[]
+  bookmarks     Bookmark[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model RoleModel {
+  id          String   @id @default(uuid())
+  name        Role     @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  module      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  assignedBy String?  @map("assigned_by")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      RoleModel @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role         RoleModel  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Article {
+  id                String        @id @default(uuid())
+  slug              String        @unique
+  title             String
+  excerpt           String
+  content           String
+  contentType       ContentType   @default(article) @map("content_type")
+  status            ArticleStatus @default(draft)
+  featuredImage     String?       @map("featured_image")
+  authorId          String        @map("author_id")
+  categoryId        String?       @map("category_id")
+  readingTimeMinutes Int          @default(1) @map("reading_time_minutes")
+  viewCount         Int           @default(0) @map("view_count")
+  publishedAt       DateTime?     @map("published_at")
+  seoTitle          String?       @map("seo_title")
+  seoDescription    String?       @map("seo_description")
+  isFeatured        Boolean       @default(false) @map("is_featured")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  createdById       String        @map("created_by")
+  updatedById       String        @map("updated_by")
+
+  // Relations
+  author            User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+  category          Category?     @relation(fields: [categoryId], references: [id])
+  tags              ArticleTag[]
+  comments          Comment[]
+  bookmarks         Bookmark[]
+  createdBy         User          @relation("ArticleCreatedBy", fields: [createdById], references: [id])
+  updatedBy         User          @relation("ArticleUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([contentType])
+  @@map("articles")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  parentId    String?   @map("parent_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  parent      Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  articles    Article[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id        String       @id @default(uuid())
+  name      String
+  slug      String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  articles  ArticleTag[]
+
+  @@map("tags")
+}
+
+model ArticleTag {
+  articleId String @map("article_id")
+  tagId     String @map("tag_id")
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+model Comment {
+  id        String        @id @default(uuid())
+  content   String
+  status    CommentStatus @default(pending)
+  articleId String        @map("article_id")
+  authorId  String        @map("author_id")
+  parentId  String?       @map("parent_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  article   Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author    User          @relation(fields: [authorId], references: [id])
+  parent    Comment?      @relation("CommentThread", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentThread")
+
+  @@index([articleId, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@map("comments")
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  articleId String   @map("article_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@map("bookmarks")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  userId    String           @map("user_id")
+  link      String?
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id           String      @id @default(uuid())
+  action       AuditAction
+  entityType   String      @map("entity_type")
+  entityId     String?     @map("entity_id")
+  userId       String?     @map("user_id")
+  details      Json?
+  ipAddress    String?     @map("ip_address")
+  userAgent    String?     @map("user_agent")
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

@@ -5,6 +5,8 @@
 This document outlines the PostgreSQL database schema for CyberVault.
 The database is hosted on Supabase with Row Level Security (RLS) enabled.
 
+**Current Implementation**: The database layer is implemented as an in-memory store (`src/db/store.ts`) that mirrors the Prisma schema. This provides a fully functional CRUD layer for development and demo purposes. The Prisma schema (`prisma/schema.prisma`) serves as the source of truth for production deployment.
+
 ## Core Tables
 
 ### users / profiles
