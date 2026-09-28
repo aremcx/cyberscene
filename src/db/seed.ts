@@ -17,9 +17,12 @@ import { seedThreatIntelligence } from './seedThreatIntel';
 import { seedVulnerabilities } from './seedVulnerabilities';
 import { seedTools } from './seedTools';
 import { seedAcademy } from './seedAcademy';
+import { seedCommunity } from './seedCommunity';
+import { seedJobs } from './seedJobs';
+import { seedEvents } from './seedEvents';
 
 // Re-export for convenience
-export { seedThreatIntelligence, seedVulnerabilities, seedTools, seedAcademy };
+export { seedThreatIntelligence, seedVulnerabilities, seedTools, seedAcademy, seedCommunity, seedJobs, seedEvents };
 
 // ============================================
 // SEED DATA
@@ -77,6 +80,15 @@ export async function seedDatabase(): Promise<void> {
   
   // Seed academy content
   seedAcademy();
+  
+  // Seed community content
+  seedCommunity();
+  
+  // Seed jobs
+  seedJobs();
+  
+  // Seed events
+  seedEvents();
 }
 
 function seedRoles(): void {

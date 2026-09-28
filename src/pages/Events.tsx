@@ -1,113 +1,132 @@
-import { Badge, EmptyState } from '../components/ui';
+import { useEffect, useState } from 'react';
+import { db } from '../db/store';
+import { EventCard } from '../components/events/EventCard';
+import { Input, Select, EmptyState } from '../components/ui';
+import { EventType, EventMode } from '../db/eventsSchema';
+import type { Event } from '../db/eventsSchema';
 
 export function EventsPage() {
-  // Demo events data
-  const events = [
-    {
-      title: 'CyberSec Africa 2024',
-      date: 'March 15-17, 2024',
-      location: 'Lagos, Nigeria',
-      type: 'Conference',
-      description: 'The premier cybersecurity conference for the African continent.',
-      isVirtual: false,
-    },
-    {
-      title: 'Red Team Operations Workshop',
-      date: 'February 28, 2024',
-      location: 'Virtual',
-      type: 'Workshop',
-      description: 'Hands-on workshop covering advanced red team techniques.',
-      isVirtual: true,
-    },
-    {
-      title: 'Cloud Security Summit',
-      date: 'April 5-6, 2024',
-      location: 'London, UK',
-      type: 'Conference',
-      description: 'Deep dive into cloud security architectures and best practices.',
-      isVirtual: false,
-    },
-    {
-      title: 'Bug Bounty Hunting Meetup',
-      date: 'March 1, 2024',
-      location: 'Virtual',
-      type: 'Meetup',
-      description: 'Monthly meetup for bug bounty hunters to share techniques.',
-      isVirtual: true,
-    },
-  ];
+  const [events, setEvents] = useState<Event[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [modeFilter, setModeFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('all');
 
-  const typeColors = {
-    Conference: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    Workshop: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    Meetup: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    Webinar: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  };
+  useEffect(() => {
+    setEvents(db.listEvents());
+  }, []);
+
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = searchQuery === '' || 
+      event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.organizer.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesType = typeFilter === 'all' || event.eventType === typeFilter;
+    const matchesMode = modeFilter === 'all' || event.mode === modeFilter;
+    const matchesCountry = countryFilter === 'all' || event.country === countryFilter;
+
+    return matchesSearch && matchesType && matchesMode && matchesCountry;
+  });
+
+  // Get unique countries
+  const countries = Array.from(new Set(events.map(e => e.country))).sort();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-3xl">📅</span>
-          <h1 className="text-3xl font-bold text-white">Events</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-white mb-2">Cybersecurity Events</h1>
         <p className="text-gray-400">
-          Cybersecurity conferences, workshops, meetups, and webinars.
+          Discover conferences, webinars, CTFs, and training opportunities.
         </p>
       </div>
 
-      {/* Events Grid */}
-      {events.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {events.map((event, idx) => (
-            <div
-              key={idx}
-              className="rounded-xl border border-gray-800 bg-gray-900/30 p-6 hover:border-emerald-500/30 transition-all duration-300"
-            >
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-1">{event.title}</h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>{event.date}</span>
-                    <span>•</span>
-                    <span>{event.location}</span>
-                  </div>
-                </div>
-                <span className={`text-xs px-2 py-1 rounded-full border ${typeColors[event.type as keyof typeof typeColors]}`}>
-                  {event.type}
-                </span>
-              </div>
-              <p className="text-sm text-gray-400 mb-4">{event.description}</p>
-              <div className="flex items-center gap-2">
-                {event.isVirtual && (
-                  <Badge variant="info" size="sm">Virtual</Badge>
-                )}
-                <button className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-                  Learn more →
-                </button>
-              </div>
-            </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/30">
+          <div className="text-2xl font-bold text-white">{events.length}</div>
+          <div className="text-sm text-gray-500">Total Events</div>
+        </div>
+        <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/30">
+          <div className="text-2xl font-bold text-emerald-400">
+            {events.filter(e => new Date(e.startDate) > new Date()).length}
+          </div>
+          <div className="text-sm text-gray-500">Upcoming</div>
+        </div>
+        <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/30">
+          <div className="text-2xl font-bold text-cyan-400">
+            {events.filter(e => e.mode === EventMode.ONLINE).length}
+          </div>
+          <div className="text-sm text-gray-500">Online</div>
+        </div>
+        <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/30">
+          <div className="text-2xl font-bold text-purple-400">
+            {events.filter(e => e.isFeatured).length}
+          </div>
+          <div className="text-sm text-gray-500">Featured</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Input
+          placeholder="Search events..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          icon={
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          }
+        />
+        <Select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          options={[
+            { value: 'all', label: 'All Types' },
+            { value: EventType.CONFERENCE, label: 'Conference' },
+            { value: EventType.WEBINAR, label: 'Webinar' },
+            { value: EventType.CTF, label: 'CTF' },
+            { value: EventType.HACKATHON, label: 'Hackathon' },
+            { value: EventType.TRAINING, label: 'Training' },
+            { value: EventType.MEETUP, label: 'Meetup' },
+            { value: EventType.WORKSHOP, label: 'Workshop' },
+          ]}
+        />
+        <Select
+          value={modeFilter}
+          onChange={(e) => setModeFilter(e.target.value)}
+          options={[
+            { value: 'all', label: 'All Modes' },
+            { value: EventMode.ONLINE, label: 'Online' },
+            { value: EventMode.OFFLINE, label: 'In-Person' },
+            { value: EventMode.HYBRID, label: 'Hybrid' },
+          ]}
+        />
+        <Select
+          value={countryFilter}
+          onChange={(e) => setCountryFilter(e.target.value)}
+          options={[
+            { value: 'all', label: 'All Countries' },
+            ...countries.map(c => ({ value: c, label: c })),
+          ]}
+        />
+      </div>
+
+      {/* Events List */}
+      {filteredEvents.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEvents.map((event) => (
+            <EventCard key={event.id} event={event} />
           ))}
         </div>
       ) : (
         <EmptyState
           icon="📅"
-          title="No upcoming events"
-          description="Check back soon for cybersecurity events."
+          title="No events found"
+          description="Try adjusting your search or filters"
         />
       )}
-
-      {/* Submit Event CTA */}
-      <div className="mt-12 p-6 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
-        <h3 className="text-lg font-semibold text-white mb-2">Host a Cybersecurity Event?</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Submit your event to be featured on our platform and reach thousands of security professionals.
-        </p>
-        <button className="px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors">
-          Submit Event
-        </button>
-      </div>
     </div>
   );
 }

@@ -75,6 +75,33 @@ import {
   LabType,
 } from './academySchema';
 
+import type {
+  Discussion,
+  Comment as CommunityComment,
+  UserFollow,
+  UserReport,
+  ModerationAction,
+  CreateDiscussionInput,
+  CreateCommentInput as CreateCommunityCommentInput,
+  CreateReportInput,
+  DiscussionFilters,
+  ReportFilters,
+} from './communitySchema';
+
+import type {
+  Job,
+  CreateJobInput,
+  UpdateJobInput,
+  JobFilters,
+} from './jobsSchema';
+
+import type {
+  Event,
+  CreateEventInput,
+  UpdateEventInput,
+  EventFilters,
+} from './eventsSchema';
+
 import { generateId } from '../lib/utils';
 
 // ============================================
@@ -118,6 +145,16 @@ interface DatabaseState {
   labAttempts: LabAttempt[];
   userBadges: UserBadge[];
   userPoints: Map<string, UserPoints>;
+  // Community
+  discussions: Map<string, Discussion>;
+  communityComments: Map<string, CommunityComment>;
+  userFollows: UserFollow[];
+  userReports: UserReport[];
+  moderationActions: ModerationAction[];
+  // Jobs
+  jobs: Map<string, Job>;
+  // Events
+  events: Map<string, Event>;
 }
 
 let state: DatabaseState = createEmptyState();
@@ -160,6 +197,16 @@ function createEmptyState(): DatabaseState {
     labAttempts: [],
     userBadges: [],
     userPoints: new Map(),
+    // Community
+    discussions: new Map(),
+    communityComments: new Map(),
+    userFollows: [],
+    userReports: [],
+    moderationActions: [],
+    // Jobs
+    jobs: new Map(),
+    // Events
+    events: new Map(),
   };
 }
 
@@ -215,6 +262,16 @@ export const db = {
       labAttempts: state.labAttempts.length,
       userBadges: state.userBadges.length,
       userPoints: state.userPoints.size,
+      // Community
+      discussions: state.discussions.size,
+      communityComments: state.communityComments.size,
+      userFollows: state.userFollows.length,
+      userReports: state.userReports.length,
+      moderationActions: state.moderationActions.length,
+      // Jobs
+      jobs: state.jobs.size,
+      // Events
+      events: state.events.size,
     };
   },
 
@@ -2115,6 +2172,543 @@ export const db = {
 
   getUserPoints(userId: string): UserPoints | null {
     return state.userPoints.get(userId) ?? null;
+  },
+
+  // ============================================
+  // COMMUNITY - DISCUSSIONS
+  // ============================================
+
+  createDiscussion(input: CreateDiscussionInput): Discussion {
+    const now = new Date().toISOString();
+    const discussion: Discussion = {
+      id: generateId(),
+      title: input.title,
+      slug: input.slug,
+      content: input.content,
+      type: input.type,
+      authorId: input.authorId,
+      categoryId: input.categoryId ?? null,
+      tags: input.tags ?? [],
+      isPinned: input.isPinned ?? false,
+      isLocked: input.isLocked ?? false,
+      viewCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.discussions.set(discussion.id, discussion);
+    return discussion;
+  },
+
+  getDiscussionById(id: string): Discussion | null {
+    return state.discussions.get(id) ?? null;
+  },
+
+  getDiscussionBySlug(slug: string): Discussion | null {
+    for (const discussion of state.discussions.values()) {
+      if (discussion.slug === slug) return discussion;
+    }
+    return null;
+  },
+
+  listDiscussions(filters?: DiscussionFilters): Discussion[] {
+    let discussions = Array.from(state.discussions.values());
+    
+    if (filters) {
+      if (filters.type) {
+        discussions = discussions.filter(d => d.type === filters.type);
+      }
+      if (filters.authorId) {
+        discussions = discussions.filter(d => d.authorId === filters.authorId);
+      }
+      if (filters.categoryId) {
+        discussions = discussions.filter(d => d.categoryId === filters.categoryId);
+      }
+      if (filters.isPinned !== undefined) {
+        discussions = discussions.filter(d => d.isPinned === filters.isPinned);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        discussions = discussions.filter(d =>
+          d.title.toLowerCase().includes(q) ||
+          d.content.toLowerCase().includes(q)
+        );
+      }
+    }
+    
+    // Sort by pinned first, then by date
+    discussions.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    
+    return discussions;
+  },
+
+  updateDiscussion(id: string, updates: Partial<Discussion>): Discussion {
+    const discussion = state.discussions.get(id);
+    if (!discussion) throw new DatabaseError('NOT_FOUND', `Discussion with id "${id}" not found.`);
+    const updated = { ...discussion, ...updates, updatedAt: new Date().toISOString() };
+    state.discussions.set(id, updated);
+    return updated;
+  },
+
+  deleteDiscussion(id: string): void {
+    if (!state.discussions.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Discussion with id "${id}" not found.`);
+    }
+    state.discussions.delete(id);
+  },
+
+  incrementDiscussionViewCount(id: string): void {
+    const discussion = state.discussions.get(id);
+    if (discussion) {
+      discussion.viewCount++;
+      state.discussions.set(id, discussion);
+    }
+  },
+
+  // ============================================
+  // COMMUNITY - COMMENTS
+  // ============================================
+
+  createCommunityComment(input: CreateCommunityCommentInput): CommunityComment {
+    const now = new Date().toISOString();
+    const comment: CommunityComment = {
+      id: generateId(),
+      content: input.content,
+      authorId: input.authorId,
+      discussionId: input.discussionId ?? null,
+      articleId: input.articleId ?? null,
+      parentId: input.parentId ?? null,
+      status: input.status ?? 'approved' as CommunityComment['status'],
+      isEdited: false,
+      upvotes: 0,
+      downvotes: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.communityComments.set(comment.id, comment);
+    return comment;
+  },
+
+  getCommunityCommentById(id: string): CommunityComment | null {
+    return state.communityComments.get(id) ?? null;
+  },
+
+  listCommentsByDiscussion(discussionId: string): CommunityComment[] {
+    return Array.from(state.communityComments.values())
+      .filter(c => c.discussionId === discussionId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  },
+
+  listCommentsByArticle(articleId: string): CommunityComment[] {
+    return Array.from(state.communityComments.values())
+      .filter(c => c.articleId === articleId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  },
+
+  listRepliesByComment(parentId: string): CommunityComment[] {
+    return Array.from(state.communityComments.values())
+      .filter(c => c.parentId === parentId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  },
+
+  updateCommunityComment(id: string, updates: Partial<CommunityComment>): CommunityComment {
+    const comment = state.communityComments.get(id);
+    if (!comment) throw new DatabaseError('NOT_FOUND', `Comment with id "${id}" not found.`);
+    const updated = { 
+      ...comment, 
+      ...updates, 
+      isEdited: true,
+      updatedAt: new Date().toISOString() 
+    };
+    state.communityComments.set(id, updated);
+    return updated;
+  },
+
+  deleteCommunityComment(id: string): void {
+    if (!state.communityComments.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Comment with id "${id}" not found.`);
+    }
+    state.communityComments.delete(id);
+  },
+
+  voteComment(id: string, voteType: 'up' | 'down'): void {
+    const comment = state.communityComments.get(id);
+    if (!comment) return;
+    
+    if (voteType === 'up') {
+      comment.upvotes++;
+    } else {
+      comment.downvotes++;
+    }
+    state.communityComments.set(id, comment);
+  },
+
+  // ============================================
+  // COMMUNITY - USER FOLLOWS
+  // ============================================
+
+  followUser(followerId: string, followingId: string): UserFollow {
+    // Check if already following
+    const existing = state.userFollows.find(
+      f => f.followerId === followerId && f.followingId === followingId
+    );
+    if (existing) return existing;
+
+    const follow: UserFollow = {
+      id: generateId(),
+      followerId,
+      followingId,
+      createdAt: new Date().toISOString(),
+    };
+    state.userFollows.push(follow);
+    return follow;
+  },
+
+  unfollowUser(followerId: string, followingId: string): void {
+    state.userFollows = state.userFollows.filter(
+      f => !(f.followerId === followerId && f.followingId === followingId)
+    );
+  },
+
+  isFollowing(followerId: string, followingId: string): boolean {
+    return state.userFollows.some(
+      f => f.followerId === followerId && f.followingId === followingId
+    );
+  },
+
+  getFollowers(userId: string): UserFollow[] {
+    return state.userFollows.filter(f => f.followingId === userId);
+  },
+
+  getFollowing(userId: string): UserFollow[] {
+    return state.userFollows.filter(f => f.followerId === userId);
+  },
+
+  // ============================================
+  // COMMUNITY - USER REPORTS
+  // ============================================
+
+  createReport(input: CreateReportInput): UserReport {
+    const now = new Date().toISOString();
+    const report: UserReport = {
+      id: generateId(),
+      reporterId: input.reporterId,
+      reportedUserId: input.reportedUserId ?? null,
+      reportedCommentId: input.reportedCommentId ?? null,
+      reportedDiscussionId: input.reportedDiscussionId ?? null,
+      reason: input.reason,
+      description: input.description,
+      status: 'pending' as UserReport['status'],
+      moderatorNotes: null,
+      resolvedBy: null,
+      resolvedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.userReports.push(report);
+    return report;
+  },
+
+  getReportById(id: string): UserReport | null {
+    return state.userReports.find(r => r.id === id) ?? null;
+  },
+
+  listReports(filters?: ReportFilters): UserReport[] {
+    let reports = [...state.userReports];
+    
+    if (filters) {
+      if (filters.status) {
+        reports = reports.filter(r => r.status === filters.status);
+      }
+      if (filters.reason) {
+        reports = reports.filter(r => r.reason === filters.reason);
+      }
+      if (filters.reporterId) {
+        reports = reports.filter(r => r.reporterId === filters.reporterId);
+      }
+    }
+    
+    return reports.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  },
+
+  updateReport(id: string, updates: Partial<UserReport>): UserReport {
+    const report = state.userReports.find(r => r.id === id);
+    if (!report) throw new DatabaseError('NOT_FOUND', `Report with id "${id}" not found.`);
+    
+    const updated = { ...report, ...updates, updatedAt: new Date().toISOString() };
+    const index = state.userReports.findIndex(r => r.id === id);
+    state.userReports[index] = updated;
+    return updated;
+  },
+
+  resolveReport(id: string, moderatorId: string, notes: string): UserReport {
+    return this.updateReport(id, {
+      status: 'resolved' as UserReport['status'],
+      resolvedBy: moderatorId,
+      resolvedAt: new Date().toISOString(),
+      moderatorNotes: notes,
+    });
+  },
+
+  // ============================================
+  // COMMUNITY - MODERATION
+  // ============================================
+
+  logModerationAction(
+    moderatorId: string,
+    action: string,
+    targetType: string,
+    targetId: string,
+    reason: string
+  ): ModerationAction {
+    const log: ModerationAction = {
+      id: generateId(),
+      moderatorId,
+      action,
+      targetType,
+      targetId,
+      reason,
+      createdAt: new Date().toISOString(),
+    };
+    state.moderationActions.push(log);
+    return log;
+  },
+
+  listModerationActions(): ModerationAction[] {
+    return [...state.moderationActions].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  },
+
+  // ============================================
+  // JOBS
+  // ============================================
+
+  createJob(input: CreateJobInput): Job {
+    const now = new Date().toISOString();
+    const job: Job = {
+      id: generateId(),
+      title: input.title,
+      slug: input.slug,
+      company: input.company,
+      description: input.description,
+      location: input.location,
+      country: input.country,
+      workMode: input.workMode,
+      jobType: input.jobType,
+      experienceLevel: input.experienceLevel,
+      skills: input.skills,
+      salaryMin: input.salaryMin ?? null,
+      salaryMax: input.salaryMax ?? null,
+      salaryCurrency: input.salaryCurrency ?? 'USD',
+      applicationUrl: input.applicationUrl,
+      closingDate: input.closingDate ?? null,
+      postedDate: input.postedDate,
+      status: input.status ?? 'active' as Job['status'],
+      postedById: input.postedById,
+      viewCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.jobs.set(job.id, job);
+    return job;
+  },
+
+  getJobById(id: string): Job | null {
+    return state.jobs.get(id) ?? null;
+  },
+
+  getJobBySlug(slug: string): Job | null {
+    for (const job of state.jobs.values()) {
+      if (job.slug === slug) return job;
+    }
+    return null;
+  },
+
+  listJobs(filters?: JobFilters): Job[] {
+    let jobs = Array.from(state.jobs.values());
+    
+    if (filters) {
+      if (filters.jobType) {
+        jobs = jobs.filter(j => j.jobType === filters.jobType);
+      }
+      if (filters.workMode) {
+        jobs = jobs.filter(j => j.workMode === filters.workMode);
+      }
+      if (filters.experienceLevel) {
+        jobs = jobs.filter(j => j.experienceLevel === filters.experienceLevel);
+      }
+      if (filters.country) {
+        jobs = jobs.filter(j => j.country === filters.country);
+      }
+      if (filters.skills && filters.skills.length > 0) {
+        jobs = jobs.filter(j => 
+          filters.skills!.some(skill => j.skills.includes(skill))
+        );
+      }
+      if (filters.status) {
+        jobs = jobs.filter(j => j.status === filters.status);
+      }
+      if (filters.salaryMin !== undefined) {
+        jobs = jobs.filter(j => j.salaryMax === null || j.salaryMax >= filters.salaryMin!);
+      }
+      if (filters.salaryMax !== undefined) {
+        jobs = jobs.filter(j => j.salaryMin === null || j.salaryMin <= filters.salaryMax!);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        jobs = jobs.filter(j =>
+          j.title.toLowerCase().includes(q) ||
+          j.company.toLowerCase().includes(q) ||
+          j.description.toLowerCase().includes(q) ||
+          j.skills.some(s => s.toLowerCase().includes(q))
+        );
+      }
+    }
+    
+    // Sort by posted date (newest first)
+    jobs.sort((a, b) => 
+      new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()
+    );
+    
+    return jobs;
+  },
+
+  updateJob(id: string, updates: UpdateJobInput): Job {
+    const job = state.jobs.get(id);
+    if (!job) throw new DatabaseError('NOT_FOUND', `Job with id "${id}" not found.`);
+    const updated = { ...job, ...updates, updatedAt: new Date().toISOString() };
+    state.jobs.set(id, updated);
+    return updated;
+  },
+
+  deleteJob(id: string): void {
+    if (!state.jobs.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Job with id "${id}" not found.`);
+    }
+    state.jobs.delete(id);
+  },
+
+  incrementJobViewCount(id: string): void {
+    const job = state.jobs.get(id);
+    if (job) {
+      job.viewCount++;
+      state.jobs.set(id, job);
+    }
+  },
+
+  // ============================================
+  // EVENTS
+  // ============================================
+
+  createEvent(input: CreateEventInput): Event {
+    const now = new Date().toISOString();
+    const event: Event = {
+      id: generateId(),
+      name: input.name,
+      slug: input.slug,
+      description: input.description,
+      organizer: input.organizer,
+      location: input.location,
+      country: input.country,
+      mode: input.mode,
+      eventType: input.eventType,
+      category: input.category,
+      startDate: input.startDate,
+      endDate: input.endDate ?? null,
+      registrationUrl: input.registrationUrl ?? null,
+      websiteUrl: input.websiteUrl ?? null,
+      capacity: input.capacity ?? null,
+      registeredCount: 0,
+      status: input.status ?? 'published' as Event['status'],
+      isFeatured: input.isFeatured ?? false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.events.set(event.id, event);
+    return event;
+  },
+
+  getEventById(id: string): Event | null {
+    return state.events.get(id) ?? null;
+  },
+
+  getEventBySlug(slug: string): Event | null {
+    for (const event of state.events.values()) {
+      if (event.slug === slug) return event;
+    }
+    return null;
+  },
+
+  listEvents(filters?: EventFilters): Event[] {
+    let events = Array.from(state.events.values());
+    
+    if (filters) {
+      if (filters.eventType) {
+        events = events.filter(e => e.eventType === filters.eventType);
+      }
+      if (filters.mode) {
+        events = events.filter(e => e.mode === filters.mode);
+      }
+      if (filters.country) {
+        events = events.filter(e => e.country === filters.country);
+      }
+      if (filters.category) {
+        events = events.filter(e => e.category === filters.category);
+      }
+      if (filters.status) {
+        events = events.filter(e => e.status === filters.status);
+      }
+      if (filters.startDateFrom) {
+        events = events.filter(e => new Date(e.startDate) >= new Date(filters.startDateFrom!));
+      }
+      if (filters.startDateTo) {
+        events = events.filter(e => new Date(e.startDate) <= new Date(filters.startDateTo!));
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        events = events.filter(e =>
+          e.name.toLowerCase().includes(q) ||
+          e.description.toLowerCase().includes(q) ||
+          e.organizer.toLowerCase().includes(q)
+        );
+      }
+    }
+    
+    // Sort by start date (upcoming first)
+    events.sort((a, b) => 
+      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    );
+    
+    return events;
+  },
+
+  updateEvent(id: string, updates: UpdateEventInput): Event {
+    const event = state.events.get(id);
+    if (!event) throw new DatabaseError('NOT_FOUND', `Event with id "${id}" not found.`);
+    const updated = { ...event, ...updates, updatedAt: new Date().toISOString() };
+    state.events.set(id, updated);
+    return updated;
+  },
+
+  deleteEvent(id: string): void {
+    if (!state.events.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Event with id "${id}" not found.`);
+    }
+    state.events.delete(id);
+  },
+
+  incrementEventRegistration(id: string): void {
+    const event = state.events.get(id);
+    if (event) {
+      event.registeredCount++;
+      state.events.set(id, event);
+    }
   },
 };
 
