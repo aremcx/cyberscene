@@ -50,7 +50,10 @@ export class AppError extends Error {
     this.severity = severity;
     this.details = details;
     this.isOperational = true;
-    Error.captureStackTrace(this, this.constructor);
+    // captureStackTrace is Node.js specific, not available in all environments
+    if (typeof (Error as any).captureStackTrace === 'function') {
+      (Error as any).captureStackTrace(this, this.constructor);
+    }
   }
 
   toJSON() {

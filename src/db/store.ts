@@ -42,6 +42,39 @@ import type {
   UpdateToolInput,
   ToolFilters,
 } from './toolsSchema';
+
+import type {
+  LearningPath,
+  Course,
+  Module,
+  Lesson,
+  Quiz,
+  QuizQuestion,
+  Lab,
+  LabQuestion,
+  Badge,
+  UserEnrollment,
+  LessonProgress,
+  QuizAttempt,
+  LabAttempt,
+  UserBadge,
+  UserPoints,
+  CreateCourseInput,
+  CreateModuleInput,
+  CreateLessonInput,
+  CreateQuizInput,
+  CreateLabInput,
+  CourseFilters,
+  LabFilters,
+} from './academySchema';
+
+import {
+  Difficulty,
+  LessonType,
+  QuizQuestionType,
+  LabType,
+} from './academySchema';
+
 import { generateId } from '../lib/utils';
 
 // ============================================
@@ -69,6 +102,22 @@ interface DatabaseState {
   indicators: Map<string, Indicator>;
   vulnerabilities: Map<string, Vulnerability>;
   tools: Map<string, Tool>;
+  // Academy
+  learningPaths: Map<string, LearningPath>;
+  courses: Map<string, Course>;
+  modules: Map<string, Module>;
+  lessons: Map<string, Lesson>;
+  quizzes: Map<string, Quiz>;
+  quizQuestions: Map<string, QuizQuestion>;
+  labs: Map<string, Lab>;
+  labQuestions: Map<string, LabQuestion>;
+  badges: Map<string, Badge>;
+  userEnrollments: UserEnrollment[];
+  lessonProgress: LessonProgress[];
+  quizAttempts: QuizAttempt[];
+  labAttempts: LabAttempt[];
+  userBadges: UserBadge[];
+  userPoints: Map<string, UserPoints>;
 }
 
 let state: DatabaseState = createEmptyState();
@@ -95,6 +144,22 @@ function createEmptyState(): DatabaseState {
     indicators: new Map(),
     vulnerabilities: new Map(),
     tools: new Map(),
+    // Academy
+    learningPaths: new Map(),
+    courses: new Map(),
+    modules: new Map(),
+    lessons: new Map(),
+    quizzes: new Map(),
+    quizQuestions: new Map(),
+    labs: new Map(),
+    labQuestions: new Map(),
+    badges: new Map(),
+    userEnrollments: [],
+    lessonProgress: [],
+    quizAttempts: [],
+    labAttempts: [],
+    userBadges: [],
+    userPoints: new Map(),
   };
 }
 
@@ -134,6 +199,22 @@ export const db = {
       indicators: state.indicators.size,
       vulnerabilities: state.vulnerabilities.size,
       tools: state.tools.size,
+      // Academy
+      learningPaths: state.learningPaths.size,
+      courses: state.courses.size,
+      modules: state.modules.size,
+      lessons: state.lessons.size,
+      quizzes: state.quizzes.size,
+      quizQuestions: state.quizQuestions.size,
+      labs: state.labs.size,
+      labQuestions: state.labQuestions.size,
+      badges: state.badges.size,
+      userEnrollments: state.userEnrollments.length,
+      lessonProgress: state.lessonProgress.length,
+      quizAttempts: state.quizAttempts.length,
+      labAttempts: state.labAttempts.length,
+      userBadges: state.userBadges.length,
+      userPoints: state.userPoints.size,
     };
   },
 
@@ -1353,6 +1434,687 @@ export const db = {
       throw new DatabaseError('NOT_FOUND', `Tool with id "${id}" not found.`);
     }
     state.tools.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - LEARNING PATHS
+  // ============================================
+
+  createLearningPath(input: {
+    name: string;
+    slug: string;
+    description: string;
+    icon: string;
+    difficulty: Difficulty;
+    estimatedHours: number;
+    courseIds?: string[];
+    isActive?: boolean;
+  }): LearningPath {
+    const now = new Date().toISOString();
+    const path: LearningPath = {
+      id: generateId(),
+      name: input.name,
+      slug: input.slug,
+      description: input.description,
+      icon: input.icon,
+      difficulty: input.difficulty,
+      estimatedHours: input.estimatedHours,
+      courseIds: input.courseIds ?? [],
+      isActive: input.isActive ?? true,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.learningPaths.set(path.id, path);
+    return path;
+  },
+
+  getLearningPathById(id: string): LearningPath | null {
+    return state.learningPaths.get(id) ?? null;
+  },
+
+  getLearningPathBySlug(slug: string): LearningPath | null {
+    for (const path of state.learningPaths.values()) {
+      if (path.slug === slug) return path;
+    }
+    return null;
+  },
+
+  listLearningPaths(): LearningPath[] {
+    return Array.from(state.learningPaths.values());
+  },
+
+  updateLearningPath(id: string, updates: Partial<LearningPath>): LearningPath {
+    const path = state.learningPaths.get(id);
+    if (!path) throw new DatabaseError('NOT_FOUND', `Learning path with id "${id}" not found.`);
+    const updated = { ...path, ...updates, updatedAt: new Date().toISOString() };
+    state.learningPaths.set(id, updated);
+    return updated;
+  },
+
+  deleteLearningPath(id: string): void {
+    if (!state.learningPaths.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Learning path with id "${id}" not found.`);
+    }
+    state.learningPaths.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - COURSES
+  // ============================================
+
+  createCourse(input: CreateCourseInput): Course {
+    const now = new Date().toISOString();
+    const course: Course = {
+      id: generateId(),
+      title: input.title,
+      slug: input.slug,
+      description: input.description,
+      learningObjectives: input.learningObjectives,
+      difficulty: input.difficulty,
+      estimatedHours: input.estimatedHours,
+      moduleIds: input.moduleIds ?? [],
+      instructorId: input.instructorId,
+      isActive: input.isActive ?? true,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.courses.set(course.id, course);
+    return course;
+  },
+
+  getCourseById(id: string): Course | null {
+    return state.courses.get(id) ?? null;
+  },
+
+  getCourseBySlug(slug: string): Course | null {
+    for (const course of state.courses.values()) {
+      if (course.slug === slug) return course;
+    }
+    return null;
+  },
+
+  listCourses(filters?: CourseFilters): Course[] {
+    let courses = Array.from(state.courses.values());
+    
+    if (filters) {
+      if (filters.difficulty) {
+        courses = courses.filter(c => c.difficulty === filters.difficulty);
+      }
+      if (filters.isActive !== undefined) {
+        courses = courses.filter(c => c.isActive === filters.isActive);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        courses = courses.filter(c =>
+          c.title.toLowerCase().includes(q) ||
+          c.description.toLowerCase().includes(q)
+        );
+      }
+    }
+    
+    return courses;
+  },
+
+  updateCourse(id: string, updates: Partial<Course>): Course {
+    const course = state.courses.get(id);
+    if (!course) throw new DatabaseError('NOT_FOUND', `Course with id "${id}" not found.`);
+    const updated = { ...course, ...updates, updatedAt: new Date().toISOString() };
+    state.courses.set(id, updated);
+    return updated;
+  },
+
+  deleteCourse(id: string): void {
+    if (!state.courses.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Course with id "${id}" not found.`);
+    }
+    state.courses.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - MODULES
+  // ============================================
+
+  createModule(input: CreateModuleInput): Module {
+    const now = new Date().toISOString();
+    const module: Module = {
+      id: generateId(),
+      title: input.title,
+      description: input.description,
+      order: input.order,
+      courseId: input.courseId,
+      lessonIds: input.lessonIds ?? [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.modules.set(module.id, module);
+    return module;
+  },
+
+  getModuleById(id: string): Module | null {
+    return state.modules.get(id) ?? null;
+  },
+
+  listModulesByCourse(courseId: string): Module[] {
+    return Array.from(state.modules.values())
+      .filter(m => m.courseId === courseId)
+      .sort((a, b) => a.order - b.order);
+  },
+
+  updateModule(id: string, updates: Partial<Module>): Module {
+    const module = state.modules.get(id);
+    if (!module) throw new DatabaseError('NOT_FOUND', `Module with id "${id}" not found.`);
+    const updated = { ...module, ...updates, updatedAt: new Date().toISOString() };
+    state.modules.set(id, updated);
+    return updated;
+  },
+
+  deleteModule(id: string): void {
+    if (!state.modules.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Module with id "${id}" not found.`);
+    }
+    state.modules.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - LESSONS
+  // ============================================
+
+  createLesson(input: CreateLessonInput): Lesson {
+    const now = new Date().toISOString();
+    const lesson: Lesson = {
+      id: generateId(),
+      title: input.title,
+      slug: input.slug,
+      description: input.description,
+      content: input.content,
+      type: input.type,
+      duration: input.duration,
+      order: input.order,
+      moduleId: input.moduleId,
+      videoUrl: input.videoUrl,
+      quizId: input.quizId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.lessons.set(lesson.id, lesson);
+    return lesson;
+  },
+
+  getLessonById(id: string): Lesson | null {
+    return state.lessons.get(id) ?? null;
+  },
+
+  getLessonBySlug(slug: string): Lesson | null {
+    for (const lesson of state.lessons.values()) {
+      if (lesson.slug === slug) return lesson;
+    }
+    return null;
+  },
+
+  listLessonsByModule(moduleId: string): Lesson[] {
+    return Array.from(state.lessons.values())
+      .filter(l => l.moduleId === moduleId)
+      .sort((a, b) => a.order - b.order);
+  },
+
+  updateLesson(id: string, updates: Partial<Lesson>): Lesson {
+    const lesson = state.lessons.get(id);
+    if (!lesson) throw new DatabaseError('NOT_FOUND', `Lesson with id "${id}" not found.`);
+    const updated = { ...lesson, ...updates, updatedAt: new Date().toISOString() };
+    state.lessons.set(id, updated);
+    return updated;
+  },
+
+  deleteLesson(id: string): void {
+    if (!state.lessons.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Lesson with id "${id}" not found.`);
+    }
+    state.lessons.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - QUIZZES
+  // ============================================
+
+  createQuiz(input: CreateQuizInput): Quiz {
+    const now = new Date().toISOString();
+    const quiz: Quiz = {
+      id: generateId(),
+      title: input.title,
+      description: input.description,
+      passingScore: input.passingScore,
+      timeLimit: input.timeLimit,
+      questionIds: input.questionIds ?? [],
+      lessonId: input.lessonId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.quizzes.set(quiz.id, quiz);
+    return quiz;
+  },
+
+  getQuizById(id: string): Quiz | null {
+    return state.quizzes.get(id) ?? null;
+  },
+
+  getQuizByLessonId(lessonId: string): Quiz | null {
+    for (const quiz of state.quizzes.values()) {
+      if (quiz.lessonId === lessonId) return quiz;
+    }
+    return null;
+  },
+
+  updateQuiz(id: string, updates: Partial<Quiz>): Quiz {
+    const quiz = state.quizzes.get(id);
+    if (!quiz) throw new DatabaseError('NOT_FOUND', `Quiz with id "${id}" not found.`);
+    const updated = { ...quiz, ...updates, updatedAt: new Date().toISOString() };
+    state.quizzes.set(id, updated);
+    return updated;
+  },
+
+  deleteQuiz(id: string): void {
+    if (!state.quizzes.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Quiz with id "${id}" not found.`);
+    }
+    state.quizzes.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - QUIZ QUESTIONS
+  // ============================================
+
+  createQuizQuestion(input: {
+    quizId: string;
+    question: string;
+    type: QuizQuestionType;
+    options: string[];
+    correctAnswer: string;
+    explanation: string;
+    points: number;
+    order: number;
+  }): QuizQuestion {
+    const now = new Date().toISOString();
+    const question: QuizQuestion = {
+      id: generateId(),
+      quizId: input.quizId,
+      question: input.question,
+      type: input.type,
+      options: input.options,
+      correctAnswer: input.correctAnswer,
+      explanation: input.explanation,
+      points: input.points,
+      order: input.order,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.quizQuestions.set(question.id, question);
+    return question;
+  },
+
+  getQuizQuestionById(id: string): QuizQuestion | null {
+    return state.quizQuestions.get(id) ?? null;
+  },
+
+  listQuizQuestionsByQuiz(quizId: string): QuizQuestion[] {
+    return Array.from(state.quizQuestions.values())
+      .filter(q => q.quizId === quizId)
+      .sort((a, b) => a.order - b.order);
+  },
+
+  updateQuizQuestion(id: string, updates: Partial<QuizQuestion>): QuizQuestion {
+    const question = state.quizQuestions.get(id);
+    if (!question) throw new DatabaseError('NOT_FOUND', `Quiz question with id "${id}" not found.`);
+    const updated = { ...question, ...updates, updatedAt: new Date().toISOString() };
+    state.quizQuestions.set(id, updated);
+    return updated;
+  },
+
+  deleteQuizQuestion(id: string): void {
+    if (!state.quizQuestions.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Quiz question with id "${id}" not found.`);
+    }
+    state.quizQuestions.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - LABS
+  // ============================================
+
+  createLab(input: CreateLabInput): Lab {
+    const now = new Date().toISOString();
+    const lab: Lab = {
+      id: generateId(),
+      title: input.title,
+      slug: input.slug,
+      description: input.description,
+      objectives: input.objectives,
+      instructions: input.instructions,
+      type: input.type,
+      difficulty: input.difficulty,
+      estimatedTime: input.estimatedTime,
+      points: input.points,
+      badgeId: input.badgeId ?? null,
+      questionIds: input.questionIds ?? [],
+      courseId: input.courseId ?? null,
+      isActive: input.isActive ?? true,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.labs.set(lab.id, lab);
+    return lab;
+  },
+
+  getLabById(id: string): Lab | null {
+    return state.labs.get(id) ?? null;
+  },
+
+  getLabBySlug(slug: string): Lab | null {
+    for (const lab of state.labs.values()) {
+      if (lab.slug === slug) return lab;
+    }
+    return null;
+  },
+
+  listLabs(filters?: LabFilters): Lab[] {
+    let labs = Array.from(state.labs.values());
+    
+    if (filters) {
+      if (filters.type) {
+        labs = labs.filter(l => l.type === filters.type);
+      }
+      if (filters.difficulty) {
+        labs = labs.filter(l => l.difficulty === filters.difficulty);
+      }
+      if (filters.isActive !== undefined) {
+        labs = labs.filter(l => l.isActive === filters.isActive);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        labs = labs.filter(l =>
+          l.title.toLowerCase().includes(q) ||
+          l.description.toLowerCase().includes(q)
+        );
+      }
+    }
+    
+    return labs;
+  },
+
+  updateLab(id: string, updates: Partial<Lab>): Lab {
+    const lab = state.labs.get(id);
+    if (!lab) throw new DatabaseError('NOT_FOUND', `Lab with id "${id}" not found.`);
+    const updated = { ...lab, ...updates, updatedAt: new Date().toISOString() };
+    state.labs.set(id, updated);
+    return updated;
+  },
+
+  deleteLab(id: string): void {
+    if (!state.labs.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Lab with id "${id}" not found.`);
+    }
+    state.labs.delete(id);
+  },
+
+  // ============================================
+  // ACADEMY - LAB QUESTIONS
+  // ============================================
+
+  createLabQuestion(input: {
+    labId: string;
+    question: string;
+    type: QuizQuestionType;
+    options: string[];
+    correctAnswer: string;
+    hint: string;
+    points: number;
+    order: number;
+  }): LabQuestion {
+    const now = new Date().toISOString();
+    const question: LabQuestion = {
+      id: generateId(),
+      labId: input.labId,
+      question: input.question,
+      type: input.type,
+      options: input.options,
+      correctAnswer: input.correctAnswer,
+      hint: input.hint,
+      points: input.points,
+      order: input.order,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.labQuestions.set(question.id, question);
+    return question;
+  },
+
+  getLabQuestionById(id: string): LabQuestion | null {
+    return state.labQuestions.get(id) ?? null;
+  },
+
+  listLabQuestionsByLab(labId: string): LabQuestion[] {
+    return Array.from(state.labQuestions.values())
+      .filter(q => q.labId === labId)
+      .sort((a, b) => a.order - b.order);
+  },
+
+  // ============================================
+  // ACADEMY - BADGES
+  // ============================================
+
+  createBadge(input: {
+    name: string;
+    description: string;
+    icon: string;
+    category: string;
+    pointsRequired: number;
+  }): Badge {
+    const now = new Date().toISOString();
+    const badge: Badge = {
+      id: generateId(),
+      name: input.name,
+      description: input.description,
+      icon: input.icon,
+      category: input.category,
+      pointsRequired: input.pointsRequired,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.badges.set(badge.id, badge);
+    return badge;
+  },
+
+  getBadgeById(id: string): Badge | null {
+    return state.badges.get(id) ?? null;
+  },
+
+  listBadges(): Badge[] {
+    return Array.from(state.badges.values());
+  },
+
+  listBadgesByCategory(category: string): Badge[] {
+    return Array.from(state.badges.values()).filter(b => b.category === category);
+  },
+
+  // ============================================
+  // ACADEMY - USER PROGRESS
+  // ============================================
+
+  enrollUser(userId: string, courseId: string): UserEnrollment {
+    // Check if already enrolled
+    const existing = state.userEnrollments.find(
+      e => e.userId === userId && e.courseId === courseId
+    );
+    if (existing) return existing;
+
+    const enrollment: UserEnrollment = {
+      id: generateId(),
+      userId,
+      courseId,
+      enrolledAt: new Date().toISOString(),
+      completedAt: null,
+      progress: 0,
+      lastLessonId: null,
+    };
+    state.userEnrollments.push(enrollment);
+    return enrollment;
+  },
+
+  getUserEnrollment(userId: string, courseId: string): UserEnrollment | null {
+    return state.userEnrollments.find(
+      e => e.userId === userId && e.courseId === courseId
+    ) ?? null;
+  },
+
+  getUserEnrollments(userId: string): UserEnrollment[] {
+    return state.userEnrollments.filter(e => e.userId === userId);
+  },
+
+  updateEnrollmentProgress(userId: string, courseId: string, progress: number, lastLessonId?: string): void {
+    const enrollment = state.userEnrollments.find(
+      e => e.userId === userId && e.courseId === courseId
+    );
+    if (!enrollment) return;
+
+    enrollment.progress = progress;
+    if (lastLessonId) enrollment.lastLessonId = lastLessonId;
+    if (progress >= 100 && !enrollment.completedAt) {
+      enrollment.completedAt = new Date().toISOString();
+    }
+  },
+
+  markLessonComplete(userId: string, lessonId: string, timeSpent: number): LessonProgress {
+    // Check if already completed
+    const existing = state.lessonProgress.find(
+      p => p.userId === userId && p.lessonId === lessonId
+    );
+    if (existing) return existing;
+
+    const progress: LessonProgress = {
+      id: generateId(),
+      userId,
+      lessonId,
+      completedAt: new Date().toISOString(),
+      timeSpent,
+    };
+    state.lessonProgress.push(progress);
+    return progress;
+  },
+
+  isLessonComplete(userId: string, lessonId: string): boolean {
+    return state.lessonProgress.some(
+      p => p.userId === userId && p.lessonId === lessonId
+    );
+  },
+
+  submitQuizAttempt(
+    userId: string,
+    quizId: string,
+    answers: Record<string, string>,
+    score: number,
+    passed: boolean,
+    timeSpent: number
+  ): QuizAttempt {
+    const attempt: QuizAttempt = {
+      id: generateId(),
+      userId,
+      quizId,
+      answers,
+      score,
+      passed,
+      completedAt: new Date().toISOString(),
+      timeSpent,
+    };
+    state.quizAttempts.push(attempt);
+    return attempt;
+  },
+
+  getUserQuizAttempts(userId: string, quizId?: string): QuizAttempt[] {
+    let attempts = state.quizAttempts.filter(a => a.userId === userId);
+    if (quizId) {
+      attempts = attempts.filter(a => a.quizId === quizId);
+    }
+    return attempts;
+  },
+
+  submitLabAttempt(
+    userId: string,
+    labId: string,
+    answers: Record<string, string>,
+    score: number,
+    completed: boolean,
+    timeSpent: number
+  ): LabAttempt {
+    const attempt: LabAttempt = {
+      id: generateId(),
+      userId,
+      labId,
+      answers,
+      score,
+      completed,
+      completedAt: completed ? new Date().toISOString() : null,
+      timeSpent,
+    };
+    state.labAttempts.push(attempt);
+    return attempt;
+  },
+
+  getUserLabAttempts(userId: string, labId?: string): LabAttempt[] {
+    let attempts = state.labAttempts.filter(a => a.userId === userId);
+    if (labId) {
+      attempts = attempts.filter(a => a.labId === labId);
+    }
+    return attempts;
+  },
+
+  awardBadge(userId: string, badgeId: string): UserBadge {
+    // Check if already awarded
+    const existing = state.userBadges.find(
+      b => b.userId === userId && b.badgeId === badgeId
+    );
+    if (existing) return existing;
+
+    const userBadge: UserBadge = {
+      id: generateId(),
+      userId,
+      badgeId,
+      earnedAt: new Date().toISOString(),
+    };
+    state.userBadges.push(userBadge);
+    return userBadge;
+  },
+
+  getUserBadges(userId: string): UserBadge[] {
+    return state.userBadges.filter(b => b.userId === userId);
+  },
+
+  hasUserBadge(userId: string, badgeId: string): boolean {
+    return state.userBadges.some(b => b.userId === userId && b.badgeId === badgeId);
+  },
+
+  updateUserPoints(userId: string, points: number): UserPoints {
+    const existing = state.userPoints.get(userId);
+    const now = new Date().toISOString();
+    
+    if (existing) {
+      existing.totalPoints += points;
+      existing.level = Math.floor(existing.totalPoints / 100) + 1;
+      existing.updatedAt = now;
+      return existing;
+    }
+
+    const userPoints: UserPoints = {
+      id: generateId(),
+      userId,
+      totalPoints: points,
+      level: Math.floor(points / 100) + 1,
+      updatedAt: now,
+    };
+    state.userPoints.set(userId, userPoints);
+    return userPoints;
+  },
+
+  getUserPoints(userId: string): UserPoints | null {
+    return state.userPoints.get(userId) ?? null;
   },
 };
 

@@ -16,9 +16,10 @@ import { hashPassword } from '../lib/crypto';
 import { seedThreatIntelligence } from './seedThreatIntel';
 import { seedVulnerabilities } from './seedVulnerabilities';
 import { seedTools } from './seedTools';
+import { seedAcademy } from './seedAcademy';
 
 // Re-export for convenience
-export { seedThreatIntelligence, seedVulnerabilities, seedTools };
+export { seedThreatIntelligence, seedVulnerabilities, seedTools, seedAcademy };
 
 // ============================================
 // SEED DATA
@@ -73,6 +74,9 @@ export async function seedDatabase(): Promise<void> {
   
   // Seed tools directory
   seedTools();
+  
+  // Seed academy content
+  seedAcademy();
 }
 
 function seedRoles(): void {

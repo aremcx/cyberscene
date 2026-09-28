@@ -17,6 +17,11 @@ import { IntelligenceDashboardPage } from './pages/IntelligenceDashboard';
 import { ToolsPage } from './pages/Tools';
 import { ToolDetailPage } from './pages/ToolDetail';
 import { AcademyPage } from './pages/Academy';
+import { LearningPathsPage } from './pages/academy/LearningPathsPage';
+import { LearningPathDetailPage } from './pages/academy/LearningPathDetailPage';
+import { LabsPage } from './pages/academy/LabsPage';
+import { LabDetailPage } from './pages/academy/LabDetailPage';
+import { UserDashboardPage } from './pages/academy/UserDashboardPage';
 import { CommunityPage } from './pages/Community';
 import { JobsPage } from './pages/Jobs';
 import { SearchResults } from './components/search/SearchResults';
@@ -70,6 +75,11 @@ export default function App() {
                 <Route path={ROUTES.TOOLS} element={<ToolsPage />} />
                 <Route path="/tools/:slug" element={<ToolDetailPage />} />
                 <Route path={ROUTES.ACADEMY} element={<AcademyPage />} />
+                <Route path="/academy/paths" element={<LearningPathsPage />} />
+                <Route path="/academy/paths/:slug" element={<LearningPathDetailPage />} />
+                <Route path="/academy/labs" element={<LabsPage />} />
+                <Route path="/academy/labs/:slug" element={<LabDetailPage />} />
+                <Route path="/academy/dashboard" element={<UserDashboardPage />} />
                 <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />
                 <Route path={ROUTES.JOBS} element={<JobsPage />} />
                 <Route path="/search" element={<SearchResults />} />
