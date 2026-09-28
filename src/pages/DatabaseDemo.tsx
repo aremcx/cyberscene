@@ -23,10 +23,12 @@ export function DatabaseDemoPage() {
   const [logs, setLogs] = useState(getLogBuffer());
 
   useEffect(() => {
-    // Initialize database on mount
-    initializeDatabase();
-    setDbStatus(getDatabaseStatus());
-    setLogs(getLogBuffer());
+    const init = async () => {
+      await initializeDatabase();
+      setDbStatus(getDatabaseStatus());
+      setLogs(getLogBuffer());
+    };
+    init();
   }, []);
 
   const refresh = () => {
@@ -100,7 +102,7 @@ function OverviewTab({ status, onReset, onReseed }: { status: ReturnType<typeof 
         <Button onClick={() => { resetDatabase(); onReset(); }} variant="outline">
           Reset Database
         </Button>
-        <Button onClick={() => { reseedDatabase(); onReseed(); }}>
+        <Button onClick={async () => { await reseedDatabase(); onReseed(); }}>
           Re-seed Database
         </Button>
       </div>

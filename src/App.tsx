@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AuthProvider } from './components/auth/AuthProvider';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AdminRoute } from './components/auth/AdminRoute';
 import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/Home';
 import { ArticlesPage } from './pages/Articles';
@@ -9,16 +12,22 @@ import { ToolsPage } from './pages/Tools';
 import { AcademyPage } from './pages/Academy';
 import { CommunityPage } from './pages/Community';
 import { JobsPage } from './pages/Jobs';
-import { LoginPage } from './pages/Login';
+import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { AuthDemoPage } from './pages/auth/AuthDemoPage';
 import { DatabaseDemoPage } from './pages/DatabaseDemo';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { NotFoundPage } from './pages/NotFound';
 import { ROUTES } from './config/routes';
 import { initializeDatabase } from './db';
 
 function AppInitializer({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Initialize database with seed data on app start
-    initializeDatabase({ seed: true });
+    const init = async () => {
+      await initializeDatabase({ seed: true });
+    };
+    init();
   }, []);
 
   return <>{children}</>;
@@ -29,20 +38,42 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AppInitializer>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path={ROUTES.HOME} element={<HomePage />} />
-              <Route path={ROUTES.ARTICLES} element={<ArticlesPage />} />
-              <Route path={ROUTES.THREAT_INTEL} element={<ThreatIntelPage />} />
-              <Route path={ROUTES.TOOLS} element={<ToolsPage />} />
-              <Route path={ROUTES.ACADEMY} element={<AcademyPage />} />
-              <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />
-              <Route path={ROUTES.JOBS} element={<JobsPage />} />
-              <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-              <Route path="/demo/database" element={<DatabaseDemoPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route element={<Layout />}>
+                {/* Public Routes */}
+                <Route path={ROUTES.HOME} element={<HomePage />} />
+                <Route path={ROUTES.ARTICLES} element={<ArticlesPage />} />
+                <Route path={ROUTES.THREAT_INTEL} element={<ThreatIntelPage />} />
+                <Route path={ROUTES.TOOLS} element={<ToolsPage />} />
+                <Route path={ROUTES.ACADEMY} element={<AcademyPage />} />
+                <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />
+                <Route path={ROUTES.JOBS} element={<JobsPage />} />
+
+                {/* Auth Routes */}
+                <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+                <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+                <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+
+                {/* Protected Routes */}
+                <Route
+                  path={ROUTES.ADMIN}
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
+                  }
+                />
+
+                {/* Demo Routes */}
+                <Route path={ROUTES.DEMO_DATABASE} element={<DatabaseDemoPage />} />
+                <Route path={ROUTES.AUTH_DEMO} element={<AuthDemoPage />} />
+
+                {/* Catch-all */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
+            </Routes>
+          </AuthProvider>
         </AppInitializer>
       </BrowserRouter>
     </ErrorBoundary>

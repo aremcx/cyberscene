@@ -24,7 +24,7 @@ let isSeeded = false;
  * In production, this would run Prisma migrations.
  * In development/demo, this seeds the in-memory store.
  */
-export function initializeDatabase(options?: { seed?: boolean }): DatabaseStatus {
+export async function initializeDatabase(options?: { seed?: boolean }): Promise<DatabaseStatus> {
   logger.db.info('Initializing database...');
 
   // Reset state
@@ -34,7 +34,7 @@ export function initializeDatabase(options?: { seed?: boolean }): DatabaseStatus
   // Seed if requested (default: true for demo)
   if (options?.seed !== false) {
     logger.db.info('Seeding database with demo data...');
-    seedDatabase();
+    await seedDatabase();
     isSeeded = true;
     logger.db.info('Database seeded successfully');
   }
@@ -62,9 +62,9 @@ export function resetDatabase(): void {
 /**
  * Re-seed the database
  */
-export function reseedDatabase(): DatabaseStatus {
+export async function reseedDatabase(): Promise<DatabaseStatus> {
   logger.db.info('Re-seeding database...');
-  seedDatabase();
+  await seedDatabase();
   isSeeded = true;
   return {
     initialized: isInitialized,

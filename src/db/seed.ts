@@ -12,6 +12,7 @@ import {
 import type {
   CreateArticleInput, CreateUserInput, CreateCategoryInput, CreateTagInput, CreateCommentInput,
 } from './schema';
+import { hashPassword } from '../lib/crypto';
 
 // ============================================
 // SEED DATA
@@ -45,13 +46,13 @@ export const DEMO_CREDENTIALS = [
 // SEED FUNCTIONS
 // ============================================
 
-export function seedDatabase(): void {
+export async function seedDatabase(): Promise<void> {
   // Reset first
   db.reset();
 
   seedRoles();
   seedPermissions();
-  seedUsers();
+  await seedUsers();
   seedCategories();
   seedTags();
   seedArticles();
@@ -119,12 +120,15 @@ function seedPermissions(): void {
   }
 }
 
-function seedUsers(): void {
-  const users: (CreateUserInput & { id: string; role: Role })[] = [
+async function seedUsers(): Promise<void> {
+  // All demo users use the same password: Demo@1234
+  const demoPassword = 'Demo@1234';
+  const passwordHash = await hashPassword(demoPassword);
+
+  const users: (Omit<CreateUserInput, 'passwordHash'> & { id: string; role: Role })[] = [
     {
       id: DEMO_USERS.SUPER_ADMIN,
       email: 'superadmin@cybervault.dev',
-      passwordHash: 'hashed_demo_password_super_admin',
       displayName: 'Sarah Chen',
       bio: 'Platform administrator and cybersecurity veteran with 15+ years of experience.',
       role: Role.SUPER_ADMIN,
@@ -133,7 +137,6 @@ function seedUsers(): void {
     {
       id: DEMO_USERS.ADMIN,
       email: 'admin@cybervault.dev',
-      passwordHash: 'hashed_demo_password_admin',
       displayName: 'Marcus Johnson',
       bio: 'Senior security engineer and platform admin.',
       role: Role.ADMIN,
@@ -142,7 +145,6 @@ function seedUsers(): void {
     {
       id: DEMO_USERS.EDITOR,
       email: 'editor@cybervault.dev',
-      passwordHash: 'hashed_demo_password_editor',
       displayName: 'Elena Rodriguez',
       bio: 'Content editor specializing in threat analysis articles.',
       role: Role.EDITOR,
@@ -151,7 +153,6 @@ function seedUsers(): void {
     {
       id: DEMO_USERS.AUTHOR_1,
       email: 'author@cybervault.dev',
-      passwordHash: 'hashed_demo_password_author',
       displayName: 'Alex Kim',
       bio: 'Penetration tester and security researcher. OSCP, OSCE certified.',
       role: Role.AUTHOR,
@@ -160,7 +161,6 @@ function seedUsers(): void {
     {
       id: DEMO_USERS.AUTHOR_2,
       email: 'writer@cybervault.dev',
-      passwordHash: 'hashed_demo_password_writer',
       displayName: 'Fatima Al-Hassan',
       bio: 'Cloud security architect and technical writer.',
       role: Role.AUTHOR,
@@ -169,7 +169,6 @@ function seedUsers(): void {
     {
       id: DEMO_USERS.CONTRIBUTOR,
       email: 'contributor@cybervault.dev',
-      passwordHash: 'hashed_demo_password_contributor',
       displayName: 'David Okafor',
       bio: 'Security enthusiast and open-source contributor from Lagos.',
       role: Role.CONTRIBUTOR,
@@ -178,7 +177,6 @@ function seedUsers(): void {
     {
       id: DEMO_USERS.MODERATOR,
       email: 'moderator@cybervault.dev',
-      passwordHash: 'hashed_demo_password_moderator',
       displayName: 'Priya Sharma',
       bio: 'Community moderator and SOC analyst.',
       role: Role.MODERATOR,
@@ -187,7 +185,6 @@ function seedUsers(): void {
     {
       id: DEMO_USERS.REGULAR_USER,
       email: 'user@cybervault.dev',
-      passwordHash: 'hashed_demo_password_user',
       displayName: 'James Wilson',
       bio: 'IT professional learning cybersecurity.',
       role: Role.USER,
@@ -198,7 +195,7 @@ function seedUsers(): void {
   for (const u of users) {
     const user = db.createUser({
       email: u.email,
-      passwordHash: u.passwordHash,
+      passwordHash,
       displayName: u.displayName,
       bio: u.bio,
       emailVerified: u.emailVerified,

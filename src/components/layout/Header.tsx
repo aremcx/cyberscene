@@ -4,6 +4,8 @@ import { ROUTES } from '../../config/routes';
 import { APP_NAME } from '../../config/constants';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../hooks/useTheme';
+import { useAuth } from '../auth/AuthProvider';
+import { hasPermission, PERMISSIONS } from '../../lib/authorization';
 
 const NAV_ITEMS = [
   { label: 'Articles', path: ROUTES.ARTICLES },
@@ -13,12 +15,15 @@ const NAV_ITEMS = [
   { label: 'Community', path: ROUTES.COMMUNITY },
   { label: 'Jobs', path: ROUTES.JOBS },
   { label: 'DB Demo', path: ROUTES.DEMO_DATABASE },
+  { label: 'Auth Demo', path: ROUTES.AUTH_DEMO },
 ];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated, user, authContext, logout } = useAuth();
+  const isAdmin = hasPermission(authContext, PERMISSIONS.SYSTEM_ADMIN);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-gray-950/80 backdrop-blur-xl">
@@ -80,13 +85,38 @@ export function Header() {
               )}
             </button>
 
-            {/* Sign In */}
-            <Link
-              to={ROUTES.LOGIN}
-              className="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-medium text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 transition-colors"
-            >
-              Sign In
-            </Link>
+            {/* Auth Section */}
+            {isAuthenticated ? (
+              <div className="hidden sm:flex items-center gap-2">
+                {isAdmin && (
+                  <Link
+                    to={ROUTES.ADMIN}
+                    className="px-3 py-2 rounded-lg text-sm font-medium text-amber-400 hover:bg-amber-500/10 transition-colors"
+                  >
+                    Admin
+                  </Link>
+                )}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs text-emerald-400 font-medium">
+                    {user?.displayName?.charAt(0) || 'U'}
+                  </div>
+                  <span className="text-sm text-gray-300">{user?.displayName}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                to={ROUTES.LOGIN}
+                className="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-medium text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
 
             {/* Mobile menu button */}
             <button
