@@ -21,7 +21,9 @@ export enum Role {
 export enum ArticleStatus {
   DRAFT = 'draft',
   PENDING_REVIEW = 'pending_review',
+  APPROVED = 'approved',
   PUBLISHED = 'published',
+  REJECTED = 'rejected',
   ARCHIVED = 'archived',
 }
 
@@ -32,6 +34,18 @@ export enum ContentType {
   RESEARCH = 'research',
   THREAT_INTEL = 'threat_intel',
   TOOL_REVIEW = 'tool_review',
+  CASE_STUDY = 'case_study',
+  INTERVIEW = 'interview',
+  CAREER = 'career',
+  SECURITY_AWARENESS = 'security_awareness',
+  OPINION = 'opinion',
+}
+
+export enum Difficulty {
+  BEGINNER = 'beginner',
+  INTERMEDIATE = 'intermediate',
+  ADVANCED = 'advanced',
+  EXPERT = 'expert',
 }
 
 export enum CommentStatus {
@@ -114,12 +128,14 @@ export interface Article {
   content: string;
   contentType: ContentType;
   status: ArticleStatus;
+  difficulty: Difficulty | null;
   featuredImage: string | null;
   authorId: string;
   categoryId: string | null;
   readingTimeMinutes: number;
   viewCount: number;
   publishedAt: string | null;
+  scheduledAt: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
   isFeatured: boolean;
@@ -127,6 +143,19 @@ export interface Article {
   updatedAt: string;
   createdById: string;
   updatedById: string;
+}
+
+export interface ArticleRevision {
+  id: string;
+  articleId: string;
+  revisionNumber: number;
+  title: string;
+  excerpt: string;
+  content: string;
+  status: ArticleStatus;
+  changedById: string;
+  changeNote: string | null;
+  createdAt: string;
 }
 
 export interface Category {
@@ -204,11 +233,13 @@ export interface CreateArticleInput {
   content: string;
   contentType?: ContentType;
   status?: ArticleStatus;
+  difficulty?: Difficulty | null;
   featuredImage?: string | null;
   authorId: string;
   categoryId?: string | null;
   readingTimeMinutes?: number;
   publishedAt?: string | null;
+  scheduledAt?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
   isFeatured?: boolean;
@@ -222,10 +253,12 @@ export interface UpdateArticleInput {
   content?: string;
   contentType?: ContentType;
   status?: ArticleStatus;
+  difficulty?: Difficulty | null;
   featuredImage?: string | null;
   categoryId?: string | null;
   readingTimeMinutes?: number;
   publishedAt?: string | null;
+  scheduledAt?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
   isFeatured?: boolean;

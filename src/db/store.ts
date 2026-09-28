@@ -6,7 +6,7 @@
 
 import type {
   User, RoleRecord, Permission, UserRole, RolePermission,
-  Article, Category, Tag, ArticleTag, Comment, Bookmark,
+  Article, ArticleRevision, Category, Tag, ArticleTag, Comment, Bookmark,
   Notification, AuditLog,
   CreateArticleInput, UpdateArticleInput, CreateUserInput,
   CreateCommentInput, CreateCategoryInput, CreateTagInput,
@@ -33,6 +33,7 @@ interface DatabaseState {
   bookmarks: Map<string, Bookmark>;
   notifications: Map<string, Notification>;
   auditLogs: Map<string, AuditLog>;
+  revisions: Map<string, ArticleRevision>;
 }
 
 let state: DatabaseState = createEmptyState();
@@ -52,6 +53,7 @@ function createEmptyState(): DatabaseState {
     bookmarks: new Map(),
     notifications: new Map(),
     auditLogs: new Map(),
+    revisions: new Map(),
   };
 }
 
@@ -84,6 +86,7 @@ export const db = {
       bookmarks: state.bookmarks.size,
       notifications: state.notifications.size,
       auditLogs: state.auditLogs.size,
+      revisions: state.revisions.size,
     };
   },
 
@@ -285,12 +288,14 @@ export const db = {
       content: input.content,
       contentType: input.contentType ?? 'article' as Article['contentType'],
       status: input.status ?? 'draft' as Article['status'],
+      difficulty: input.difficulty ?? null,
       featuredImage: input.featuredImage ?? null,
       authorId: input.authorId,
       categoryId: input.categoryId ?? null,
       readingTimeMinutes: input.readingTimeMinutes ?? calculateReadingTime(input.content),
       viewCount: 0,
       publishedAt: input.publishedAt ?? null,
+      scheduledAt: input.scheduledAt ?? null,
       seoTitle: input.seoTitle ?? null,
       seoDescription: input.seoDescription ?? null,
       isFeatured: input.isFeatured ?? false,
@@ -369,6 +374,27 @@ export const db = {
       updatedAt: new Date().toISOString(),
     };
     state.articles.set(id, updated);
+
+    // Auto-create revision on content changes
+    const hasContentChange = input.title || input.excerpt || input.content || input.status;
+    if (hasContentChange) {
+      const existingRevisions = this.getArticleRevisions(id);
+      const nextRevisionNumber = existingRevisions.length > 0
+        ? existingRevisions[0].revisionNumber + 1
+        : 1;
+
+      this.createRevision(
+        id,
+        nextRevisionNumber,
+        updated.title,
+        updated.excerpt,
+        updated.content,
+        updated.status,
+        input.updatedById,
+        null
+      );
+    }
+
     return updated;
   },
 
@@ -710,6 +736,54 @@ export const db = {
 
     logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return applyPagination(logs, pagination);
+  },
+
+  // ---- REVISIONS ----
+
+  createRevision(
+    articleId: string,
+    revisionNumber: number,
+    title: string,
+    excerpt: string,
+    content: string,
+    status: Article['status'],
+    changedById: string,
+    changeNote?: string | null
+  ): ArticleRevision {
+    if (!state.articles.has(articleId)) {
+      throw new DatabaseError('NOT_FOUND', `Article with id "${articleId}" not found.`);
+    }
+
+    const revision: ArticleRevision = {
+      id: generateId(),
+      articleId,
+      revisionNumber,
+      title,
+      excerpt,
+      content,
+      status,
+      changedById,
+      changeNote: changeNote ?? null,
+      createdAt: new Date().toISOString(),
+    };
+
+    state.revisions.set(revision.id, revision);
+    return revision;
+  },
+
+  getArticleRevisions(articleId: string): ArticleRevision[] {
+    return Array.from(state.revisions.values())
+      .filter(r => r.articleId === articleId)
+      .sort((a, b) => b.revisionNumber - a.revisionNumber);
+  },
+
+  getRevisionById(id: string): ArticleRevision | null {
+    return state.revisions.get(id) ?? null;
+  },
+
+  getLatestRevision(articleId: string): ArticleRevision | null {
+    const revisions = this.getArticleRevisions(articleId);
+    return revisions.length > 0 ? revisions[0] : null;
   },
 };
 

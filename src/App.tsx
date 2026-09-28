@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './components/auth/AuthProvider';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/Home';
@@ -24,6 +23,12 @@ import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { AuthDemoPage } from './pages/auth/AuthDemoPage';
 import { DatabaseDemoPage } from './pages/DatabaseDemo';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminArticles } from './pages/admin/AdminArticles';
+import { ArticleEditor } from './pages/admin/ArticleEditor';
+import { ReviewQueue } from './pages/admin/ReviewQueue';
+import { AdminCategories } from './pages/admin/AdminCategories';
+import { AdminTags } from './pages/admin/AdminTags';
+import { AdminAuthors } from './pages/admin/AdminAuthors';
 import { NotFoundPage } from './pages/NotFound';
 import { ROUTES } from './config/routes';
 import { initializeDatabase } from './db';
@@ -67,12 +72,68 @@ export default function App() {
                 <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
                 <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
 
-                {/* Protected Routes */}
+                {/* Admin Routes */}
                 <Route
                   path={ROUTES.ADMIN}
                   element={
                     <AdminRoute>
                       <AdminDashboard />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.ADMIN_ARTICLES}
+                  element={
+                    <AdminRoute>
+                      <AdminArticles />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/articles/new"
+                  element={
+                    <AdminRoute>
+                      <ArticleEditor />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/articles/:id/edit"
+                  element={
+                    <AdminRoute>
+                      <ArticleEditor />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/review"
+                  element={
+                    <AdminRoute>
+                      <ReviewQueue />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/categories"
+                  element={
+                    <AdminRoute>
+                      <AdminCategories />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/tags"
+                  element={
+                    <AdminRoute>
+                      <AdminTags />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/authors"
+                  element={
+                    <AdminRoute>
+                      <AdminAuthors />
                     </AdminRoute>
                   }
                 />

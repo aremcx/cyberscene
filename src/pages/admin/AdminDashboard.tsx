@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../components/auth/AuthProvider';
 import { db } from '../../db/store';
 import { getSessionStats, getUserSessions } from '../../services/authService';
@@ -178,30 +179,33 @@ export function AdminDashboard() {
         </Card>
       )}
 
-      {/* Feature Access Indicators */}
-      <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <FeatureCard label="Manage Users" accessible={canManageUsers} />
-        <FeatureCard label="View Audit Logs" accessible={canViewAudit} />
-        <FeatureCard label="Publish Content" accessible={hasPermission(authContext, PERMISSIONS.CONTENT_PUBLISH)} />
-        <FeatureCard label="Moderate Community" accessible={hasPermission(authContext, PERMISSIONS.COMMUNITY_MODERATE)} />
-        <FeatureCard label="System Settings" accessible={hasPermission(authContext, PERMISSIONS.SYSTEM_SETTINGS)} />
-        <FeatureCard label="Full Admin" accessible={hasPermission(authContext, PERMISSIONS.SYSTEM_ADMIN)} />
-        <FeatureCard label="Create Content" accessible={hasPermission(authContext, PERMISSIONS.CONTENT_CREATE)} />
-        <FeatureCard label="Manage Intelligence" accessible={hasPermission(authContext, PERMISSIONS.INTELLIGENCE_MANAGE)} />
+      {/* Quick Links */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-white mb-4">Quick Links</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <QuickLink label="Articles" href="/admin/articles" icon="📝" accessible={true} />
+          <QuickLink label="Review Queue" href="/admin/review" icon="👀" accessible={hasPermission(authContext, PERMISSIONS.CONTENT_PUBLISH)} />
+          <QuickLink label="Categories" href="/admin/categories" icon="📁" accessible={true} />
+          <QuickLink label="Tags" href="/admin/tags" icon="🏷️" accessible={true} />
+          <QuickLink label="Authors" href="/admin/authors" icon="✍️" accessible={canManageUsers} />
+          <QuickLink label="Manage Users" href="/admin/users" icon="👥" accessible={canManageUsers} />
+          <QuickLink label="System Settings" href="/admin/settings" icon="⚙️" accessible={hasPermission(authContext, PERMISSIONS.SYSTEM_SETTINGS)} />
+          <QuickLink label="Audit Logs" href="/admin/audit" icon="📋" accessible={canViewAudit} />
+        </div>
       </div>
     </div>
   );
 }
 
-function FeatureCard({ label, accessible }: { label: string; accessible: boolean }) {
+function QuickLink({ label, href, icon, accessible }: { label: string; href: string; icon: string; accessible: boolean }) {
+  if (!accessible) return null;
   return (
-    <div className={`p-3 rounded-lg border text-center ${
-      accessible
-        ? 'border-emerald-500/20 bg-emerald-500/5'
-        : 'border-gray-800 bg-gray-900/30 opacity-50'
-    }`}>
-      <div className="text-lg mb-1">{accessible ? '✓' : '✗'}</div>
-      <div className="text-xs text-gray-400">{label}</div>
-    </div>
+    <Link
+      to={href}
+      className="p-4 rounded-lg border border-gray-800 bg-gray-900/30 hover:border-emerald-500/30 hover:bg-gray-800/50 transition-all duration-300 text-center group"
+    >
+      <div className="text-2xl mb-2">{icon}</div>
+      <div className="text-sm font-medium text-white group-hover:text-emerald-400 transition-colors">{label}</div>
+    </Link>
   );
 }
