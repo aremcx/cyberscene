@@ -1,6 +1,5 @@
-// This is the Prisma schema for CyberVault
-// It serves as the source of truth for the database design.
-// In production, this would be used with `prisma migrate` against a PostgreSQL database.
+// CyberVault Prisma Schema
+// This schema defines the complete database structure for the CyberVault platform
 
 generator client {
   provider = "prisma-client-js"
@@ -28,7 +27,9 @@ enum Role {
 enum ArticleStatus {
   draft
   pending_review
+  approved
   published
+  rejected
   archived
 }
 
@@ -39,12 +40,25 @@ enum ContentType {
   research
   threat_intel
   tool_review
+  case_study
+  interview
+  career
+  security_awareness
+  opinion
+}
+
+enum Difficulty {
+  beginner
+  intermediate
+  advanced
+  expert
 }
 
 enum CommentStatus {
   pending
   approved
   rejected
+  hidden
 }
 
 enum NotificationType {
@@ -66,32 +80,273 @@ enum AuditAction {
   password_reset
 }
 
+enum ThreatActorClassification {
+  criminal
+  state_sponsored
+  hacktivist
+  insider
+  unknown
+}
+
+enum MalwareType {
+  ransomware
+  trojan
+  worm
+  virus
+  spyware
+  rootkit
+  botnet
+  keylogger
+  fileless
+  other
+}
+
+enum IndicatorType {
+  domain
+  ip
+  url
+  file_hash
+  email
+}
+
+enum ThreatSeverity {
+  critical
+  high
+  medium
+  low
+  info
+}
+
+enum VulnerabilitySeverity {
+  critical
+  high
+  medium
+  low
+  none
+}
+
+enum VulnerabilityStatus {
+  analyzing
+  awaiting_analysis
+  rejected
+  modified
+}
+
+enum ToolCategory {
+  siem
+  edr
+  vulnerability_scanners
+  network_security
+  osint
+  digital_forensics
+  malware_analysis
+  penetration_testing
+  web_security
+  cloud_security
+  threat_intelligence
+  password_auditing
+  security_monitoring
+}
+
+enum ToolPlatform {
+  windows
+  linux
+  macos
+  cross_platform
+  web
+  cloud
+  mobile
+}
+
+enum ToolLicense {
+  open_source
+  commercial
+  freemium
+  free
+}
+
+enum SkillLevel {
+  beginner
+  intermediate
+  advanced
+  expert
+}
+
+enum LessonType {
+  video
+  text
+  interactive
+  quiz
+}
+
+enum QuizQuestionType {
+  multiple_choice
+  true_false
+  short_answer
+}
+
+enum LabType {
+  hands_on
+  ctf
+  scenario
+}
+
+enum DiscussionType {
+  general
+  question
+  discussion
+  help
+  showcase
+}
+
+enum ReportReason {
+  spam
+  harassment
+  inappropriate
+  misinformation
+  off_topic
+  other
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  resolved
+  dismissed
+}
+
+enum JobType {
+  full_time
+  part_time
+  contract
+  internship
+  freelance
+}
+
+enum WorkMode {
+  remote
+  onsite
+  hybrid
+}
+
+enum ExperienceLevel {
+  entry
+  junior
+  mid_level
+  senior
+  lead
+  executive
+}
+
+enum JobStatus {
+  draft
+  active
+  closed
+  expired
+}
+
+enum EventType {
+  conference
+  webinar
+  ctf
+  hackathon
+  training
+  meetup
+  workshop
+}
+
+enum EventMode {
+  online
+  offline
+  hybrid
+}
+
+enum EventStatus {
+  draft
+  published
+  cancelled
+  completed
+}
+
+enum NewsletterCategory {
+  news
+  threat_intelligence
+  vulnerabilities
+  tutorials
+  careers
+  events
+}
+
+enum SubscriptionStatus {
+  active
+  unsubscribed
+  pending
+  bounced
+}
+
+enum CampaignStatus {
+  draft
+  scheduled
+  sending
+  sent
+  cancelled
+}
+
+enum ConversationStatus {
+  active
+  archived
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
+}
+
 // ============================================
-// MODELS
+// USER & AUTHENTICATION
 // ============================================
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String    @map("password_hash")
-  displayName   String    @map("display_name")
-  avatarUrl     String?   @map("avatar_url")
-  bio           String?
-  isActive      Boolean   @default(true) @map("is_active")
-  emailVerified Boolean   @default(false) @map("email_verified")
-  lastLoginAt   DateTime? @map("last_login_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String    @map("password_hash")
+  displayName     String    @map("display_name")
+  avatarUrl       String?   @map("avatar_url")
+  bio             String?
+  isActive        Boolean   @default(true) @map("is_active")
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  roles         UserRole[]
-  articles      Article[]       @relation("ArticleAuthor")
-  articlesCreated Article[]     @relation("ArticleCreatedBy")
-  articlesUpdated Article[]     @relation("ArticleUpdatedBy")
-  comments      Comment[]
-  bookmarks     Bookmark[]
-  notifications Notification[]
-  auditLogs     AuditLog[]
+  roles           UserRole[]
+  articles        Article[]       @relation("ArticleAuthor")
+  articlesCreated Article[]       @relation("ArticleCreatedBy")
+  articlesUpdated Article[]       @relation("ArticleUpdatedBy")
+  comments        Comment[]
+  bookmarks       Bookmark[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  discussions     Discussion[]
+  communityComments CommunityComment[]
+  followers       UserFollow[]    @relation("Following")
+  following       UserFollow[]    @relation("Follower")
+  reports         UserReport[]    @relation("Reporter")
+  reportedReports UserReport[]    @relation("ReportedUser")
+  jobs            Job[]
+  campaigns       NewsletterCampaign[]
+  conversations   AIConversation[]
+  messages        AIMessage[]
+  enrollments     UserEnrollment[]
+  lessonProgress  LessonProgress[]
+  quizAttempts    QuizAttempt[]
+  labAttempts     LabAttempt[]
+  badges          UserBadge[]
+  points          UserPoints?
+  newsletterPrefs NewsletterPreference?
+  newsletterSub   NewsletterSubscriber?
 
   @@map("users")
 }
@@ -103,7 +358,6 @@ model RoleModel {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  // Relations
   users       UserRole[]
   permissions RolePermission[]
 
@@ -118,20 +372,19 @@ model Permission {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  // Relations
   roles       RolePermission[]
 
   @@map("permissions")
 }
 
 model UserRole {
-  userId    String   @map("user_id")
-  roleId    String   @map("role_id")
+  userId     String   @map("user_id")
+  roleId     String   @map("role_id")
   assignedAt DateTime @default(now()) @map("assigned_at")
   assignedBy String?  @map("assigned_by")
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      RoleModel @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       RoleModel @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
   @@map("user_roles")
@@ -148,36 +401,43 @@ model RolePermission {
   @@map("role_permissions")
 }
 
+// ============================================
+// CONTENT MANAGEMENT
+// ============================================
+
 model Article {
-  id                String        @id @default(uuid())
-  slug              String        @unique
-  title             String
-  excerpt           String
-  content           String
-  contentType       ContentType   @default(article) @map("content_type")
-  status            ArticleStatus @default(draft)
-  featuredImage     String?       @map("featured_image")
-  authorId          String        @map("author_id")
-  categoryId        String?       @map("category_id")
-  readingTimeMinutes Int          @default(1) @map("reading_time_minutes")
-  viewCount         Int           @default(0) @map("view_count")
-  publishedAt       DateTime?     @map("published_at")
-  seoTitle          String?       @map("seo_title")
-  seoDescription    String?       @map("seo_description")
-  isFeatured        Boolean       @default(false) @map("is_featured")
-  createdAt         DateTime      @default(now()) @map("created_at")
-  updatedAt         DateTime      @updatedAt @map("updated_at")
-  createdById       String        @map("created_by")
-  updatedById       String        @map("updated_by")
+  id                   String        @id @default(uuid())
+  slug                 String        @unique
+  title                String
+  excerpt              String
+  content              String
+  contentType          ContentType   @default(article) @map("content_type")
+  status               ArticleStatus @default(draft)
+  difficulty           Difficulty?
+  featuredImage        String?       @map("featured_image")
+  authorId             String        @map("author_id")
+  categoryId           String?       @map("category_id")
+  readingTimeMinutes   Int           @default(1) @map("reading_time_minutes")
+  viewCount            Int           @default(0) @map("view_count")
+  publishedAt          DateTime?     @map("published_at")
+  scheduledAt          DateTime?     @map("scheduled_at")
+  seoTitle             String?       @map("seo_title")
+  seoDescription       String?       @map("seo_description")
+  isFeatured           Boolean       @default(false) @map("is_featured")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+  createdById          String        @map("created_by")
+  updatedById          String        @map("updated_by")
 
   // Relations
-  author            User          @relation("ArticleAuthor", fields: [authorId], references: [id])
-  category          Category?     @relation(fields: [categoryId], references: [id])
-  tags              ArticleTag[]
-  comments          Comment[]
-  bookmarks         Bookmark[]
-  createdBy         User          @relation("ArticleCreatedBy", fields: [createdById], references: [id])
-  updatedBy         User          @relation("ArticleUpdatedBy", fields: [updatedById], references: [id])
+  author               User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+  category             Category?     @relation(fields: [categoryId], references: [id])
+  tags                 ArticleTag[]
+  comments             Comment[]
+  bookmarks            Bookmark[]
+  createdBy            User          @relation("ArticleCreatedBy", fields: [createdById], references: [id])
+  updatedBy            User          @relation("ArticleUpdatedBy", fields: [updatedById], references: [id])
+  revisions            ArticleRevision[]
 
   @@index([status, publishedAt(sort: Desc)])
   @@index([authorId])
@@ -186,17 +446,34 @@ model Article {
   @@map("articles")
 }
 
-model Category {
-  id          String    @id @default(uuid())
-  name        String
-  slug        String    @unique
-  description String?
-  parentId    String?   @map("parent_id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+model ArticleRevision {
+  id             String        @id @default(uuid())
+  articleId      String        @map("article_id")
+  revisionNumber Int           @map("revision_number")
+  title          String
+  excerpt        String
+  content        String
+  status         ArticleStatus
+  changedById    String        @map("changed_by_id")
+  changeNote     String?       @map("change_note")
+  createdAt      DateTime      @default(now()) @map("created_at")
 
-  // Relations
-  parent      Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  article        Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, revisionNumber])
+  @@map("article_revisions")
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  slug        String     @unique
+  description String?
+  parentId    String?    @map("parent_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryTree")
   articles    Article[]
 
@@ -210,7 +487,6 @@ model Tag {
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
-  // Relations
   articles  ArticleTag[]
 
   @@map("tags")
@@ -237,7 +513,6 @@ model Comment {
   createdAt DateTime      @default(now()) @map("created_at")
   updatedAt DateTime      @updatedAt @map("updated_at")
 
-  // Relations
   article   Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
   author    User          @relation(fields: [authorId], references: [id])
   parent    Comment?      @relation("CommentThread", fields: [parentId], references: [id])
@@ -254,13 +529,16 @@ model Bookmark {
   articleId String   @map("article_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  // Relations
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
   @@map("bookmarks")
 }
+
+// ============================================
+// NOTIFICATIONS & AUDIT
+// ============================================
 
 model Notification {
   id        String           @id @default(uuid())
@@ -272,7 +550,6 @@ model Notification {
   link      String?
   createdAt DateTime         @default(now()) @map("created_at")
 
-  // Relations
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead, createdAt(sort: Desc)])
@@ -290,11 +567,682 @@ model AuditLog {
   userAgent    String?     @map("user_agent")
   createdAt    DateTime    @default(now()) @map("created_at")
 
-  // Relations
   user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([action, createdAt(sort: Desc)])
   @@index([entityType, entityId])
   @@map("audit_logs")
+}
+
+// ============================================
+// THREAT INTELLIGENCE
+// ============================================
+
+model ThreatActor {
+  id             String                     @id @default(uuid())
+  name           String
+  aliases        String[]
+  description    String
+  classification ThreatActorClassification
+  knownTargets   String[]                   @map("known_targets")
+  geography      String[]
+  techniques     String[]
+  references     String[]
+  isActive       Boolean                    @default(true) @map("is_active")
+  firstSeen      DateTime?                  @map("first_seen")
+  lastSeen       DateTime?                  @map("last_seen")
+  createdAt      DateTime                   @default(now()) @map("created_at")
+  updatedAt      DateTime                   @updatedAt @map("updated_at")
+
+  reports        ThreatReport[]
+
+  @@map("threat_actors")
+}
+
+model Malware {
+  id               String        @id @default(uuid())
+  name             String
+  type             MalwareType
+  description      String
+  targets          String[]
+  associatedActors String[]      @map("associated_actors")
+  detectionInfo    String        @map("detection_info")
+  mitigation       String
+  references       String[]
+  firstSeen        DateTime?     @map("first_seen")
+  lastSeen         DateTime?     @map("last_seen")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  reports          ThreatReport[]
+
+  @@map("malware")
+}
+
+model ThreatReport {
+  id                String        @id @default(uuid())
+  title             String
+  summary           String
+  threatActorId     String?       @map("threat_actor_id")
+  malwareIds        String[]      @map("malware_ids")
+  targetSector      String[]      @map("target_sector")
+  geography         String[]
+  techniques        String[]
+  indicators        String[]
+  detectionGuidance String        @map("detection_guidance")
+  mitigation        String
+  references        String[]
+  publicationDate   DateTime      @map("publication_date")
+  severity          ThreatSeverity
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  threatActor       ThreatActor?  @relation(fields: [threatActorId], references: [id])
+
+  @@index([severity, publicationDate(sort: Desc)])
+  @@map("threat_reports")
+}
+
+model Indicator {
+  id          String        @id @default(uuid())
+  type        IndicatorType
+  value       String
+  description String
+  severity    ThreatSeverity
+  firstSeen   DateTime?     @map("first_seen")
+  lastSeen    DateTime?     @map("last_seen")
+  context     String
+  references  String[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([type, severity])
+  @@map("indicators")
+}
+
+// ============================================
+// VULNERABILITY INTELLIGENCE
+// ============================================
+
+model Vulnerability {
+  id               String               @id @default(uuid())
+  cveId            String               @unique @map("cve_id")
+  title            String
+  description      String
+  severity         VulnerabilitySeverity
+  cvssScore        Decimal              @map("cvss_score") @db.Decimal(3, 1)
+  cvssVector       String               @map("cvss_vector")
+  vendor           String
+  product          String
+  affectedVersions String[]             @map("affected_versions")
+  publishedDate    DateTime             @map("published_date")
+  updatedDate      DateTime             @map("updated_date")
+  remediation      String
+  references       String[]
+  status           VulnerabilityStatus  @default(analyzing)
+  isExploited      Boolean              @default(false) @map("is_exploited")
+  relatedArticles  String[]             @map("related_articles")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@index([severity, publishedDate(sort: Desc)])
+  @@index([vendor, product])
+  @@index([isExploited])
+  @@map("vulnerabilities")
+}
+
+// ============================================
+// TOOLS DIRECTORY
+// ============================================
+
+model Tool {
+  id                 String       @id @default(uuid())
+  name               String
+  slug               String       @unique
+  description        String
+  longDescription    String       @map("long_description")
+  logoUrl            String?      @map("logo_url")
+  category           ToolCategory
+  platforms          ToolPlatform[]
+  license            ToolLicense
+  website            String
+  documentationUrl   String?      @map("documentation_url")
+  githubUrl          String?      @map("github_url")
+  useCases           String[]     @map("use_cases")
+  skillLevel         SkillLevel   @map("skill_level")
+  relatedTutorialIds String[]     @map("related_tutorial_ids")
+  relatedArticleIds  String[]     @map("related_article_ids")
+  pricing            String?
+  features           String[]
+  isActive           Boolean      @default(true) @map("is_active")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  @@index([category, isActive])
+  @@index([skillLevel])
+  @@map("tools")
+}
+
+// ============================================
+// ACADEMY
+// ============================================
+
+model LearningPath {
+  id             String     @id @default(uuid())
+  name           String
+  slug           String     @unique
+  description    String
+  icon           String
+  difficulty     Difficulty
+  estimatedHours Int        @map("estimated_hours")
+  courseIds      String[]   @map("course_ids")
+  isActive       Boolean    @default(true) @map("is_active")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  @@map("learning_paths")
+}
+
+model Course {
+  id                 String     @id @default(uuid())
+  title              String
+  slug               String     @unique
+  description        String
+  learningObjectives String[]   @map("learning_objectives")
+  difficulty         Difficulty
+  estimatedHours     Int        @map("estimated_hours")
+  moduleIds          String[]   @map("module_ids")
+  instructorId       String     @map("instructor_id")
+  isActive           Boolean    @default(true) @map("is_active")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  @@index([difficulty, isActive])
+  @@map("courses")
+}
+
+model Module {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  order       Int
+  courseId    String   @map("course_id")
+  lessonIds   String[] @map("lesson_ids")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([courseId, order])
+  @@map("modules")
+}
+
+model Lesson {
+  id          String     @id @default(uuid())
+  title       String
+  slug        String     @unique
+  description String
+  content     String
+  type        LessonType
+  duration    Int
+  order       Int
+  moduleId    String     @map("module_id")
+  videoUrl    String?    @map("video_url")
+  quizId      String?    @map("quiz_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([moduleId, order])
+  @@map("lessons")
+}
+
+model Quiz {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  passingScore Int      @map("passing_score")
+  timeLimit    Int?     @map("time_limit")
+  questionIds  String[] @map("question_ids")
+  lessonId     String   @map("lesson_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String           @id @default(uuid())
+  quizId        String           @map("quiz_id")
+  question      String
+  type          QuizQuestionType
+  options       String[]
+  correctAnswer String           @map("correct_answer")
+  explanation   String
+  points        Int
+  order         Int
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  @@index([quizId, order])
+  @@map("quiz_questions")
+}
+
+model Lab {
+  id            String     @id @default(uuid())
+  title         String
+  slug          String     @unique
+  description   String
+  objectives    String[]
+  instructions  String
+  type          LabType
+  difficulty    Difficulty
+  estimatedTime Int        @map("estimated_time")
+  points        Int
+  badgeId       String?    @map("badge_id")
+  questionIds   String[]   @map("question_ids")
+  courseId      String?    @map("course_id")
+  isActive      Boolean    @default(true) @map("is_active")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  @@index([type, difficulty, isActive])
+  @@map("labs")
+}
+
+model LabQuestion {
+  id            String           @id @default(uuid())
+  labId         String           @map("lab_id")
+  question      String
+  type          QuizQuestionType
+  options       String[]
+  correctAnswer String           @map("correct_answer")
+  hint          String
+  points        Int
+  order         Int
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  @@index([labId, order])
+  @@map("lab_questions")
+}
+
+model Badge {
+  id               String   @id @default(uuid())
+  name             String
+  description      String
+  icon             String
+  category         String
+  pointsRequired   Int      @map("points_required")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("badges")
+}
+
+// ============================================
+// USER PROGRESS & GAMIFICATION
+// ============================================
+
+model UserEnrollment {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  courseId     String    @map("course_id")
+  enrolledAt   DateTime  @default(now()) @map("enrolled_at")
+  completedAt  DateTime? @map("completed_at")
+  progress     Int       @default(0)
+  lastLessonId String?   @map("last_lesson_id")
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("user_enrollments")
+}
+
+model LessonProgress {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  lessonId    String   @map("lesson_id")
+  completedAt DateTime @default(now()) @map("completed_at")
+  timeSpent   Int      @map("time_spent")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("lesson_progress")
+}
+
+model QuizAttempt {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  quizId      String   @map("quiz_id")
+  answers     Json
+  score       Int
+  passed      Boolean
+  completedAt DateTime @default(now()) @map("completed_at")
+  timeSpent   Int      @map("time_spent")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, quizId])
+  @@map("quiz_attempts")
+}
+
+model LabAttempt {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  labId       String    @map("lab_id")
+  answers     Json
+  score       Int
+  completed   Boolean
+  completedAt DateTime? @map("completed_at")
+  timeSpent   Int       @map("time_spent")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, labId])
+  @@map("lab_attempts")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  badgeId   String   @map("badge_id")
+  earnedAt  DateTime @default(now()) @map("earned_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model UserPoints {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  totalPoints Int      @default(0) @map("total_points")
+  level       Int      @default(1)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_points")
+}
+
+// ============================================
+// COMMUNITY
+// ============================================
+
+model Discussion {
+  id         String         @id @default(uuid())
+  title      String
+  slug       String         @unique
+  content    String
+  type       DiscussionType
+  authorId   String         @map("author_id")
+  categoryId String?        @map("category_id")
+  tags       String[]
+  isPinned   Boolean        @default(false) @map("is_pinned")
+  isLocked   Boolean        @default(false) @map("is_locked")
+  viewCount  Int            @default(0) @map("view_count")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  author     User           @relation(fields: [authorId], references: [id])
+  comments   CommunityComment[]
+
+  @@index([type, isPinned, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@map("discussions")
+}
+
+model CommunityComment {
+  id           String         @id @default(uuid())
+  content      String
+  authorId     String         @map("author_id")
+  discussionId String?        @map("discussion_id")
+  articleId    String?        @map("article_id")
+  parentId     String?        @map("parent_id")
+  status       CommentStatus  @default(approved)
+  isEdited     Boolean        @default(false) @map("is_edited")
+  upvotes      Int            @default(0)
+  downvotes    Int            @default(0)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  author       User           @relation(fields: [authorId], references: [id])
+  discussion   Discussion?    @relation(fields: [discussionId], references: [id])
+  parent       CommunityComment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies      CommunityComment[] @relation("CommentReplies")
+
+  @@index([discussionId, createdAt])
+  @@index([articleId, createdAt])
+  @@index([authorId])
+  @@map("community_comments")
+}
+
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("user_follows")
+}
+
+model UserReport {
+  id                   String       @id @default(uuid())
+  reporterId           String       @map("reporter_id")
+  reportedUserId       String?      @map("reported_user_id")
+  reportedCommentId    String?      @map("reported_comment_id")
+  reportedDiscussionId String?      @map("reported_discussion_id")
+  reason               ReportReason
+  description          String
+  status               ReportStatus @default(pending)
+  moderatorNotes       String?      @map("moderator_notes")
+  resolvedBy           String?      @map("resolved_by")
+  resolvedAt           DateTime?    @map("resolved_at")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  reporter             User         @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUser         User?        @relation("ReportedUser", fields: [reportedUserId], references: [id])
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("user_reports")
+}
+
+model ModerationAction {
+  id         String   @id @default(uuid())
+  moderatorId String  @map("moderator_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  reason     String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([moderatorId, createdAt(sort: Desc)])
+  @@map("moderation_actions")
+}
+
+// ============================================
+// JOBS
+// ============================================
+
+model Job {
+  id              String          @id @default(uuid())
+  title           String
+  slug            String          @unique
+  company         String
+  description     String
+  location        String
+  country         String
+  workMode        WorkMode        @map("work_mode")
+  jobType         JobType         @map("job_type")
+  experienceLevel ExperienceLevel @map("experience_level")
+  skills          String[]
+  salaryMin       Int?            @map("salary_min")
+  salaryMax       Int?            @map("salary_max")
+  salaryCurrency  String          @default("USD") @map("salary_currency")
+  applicationUrl  String          @map("application_url")
+  closingDate     DateTime?       @map("closing_date")
+  postedDate      DateTime        @map("posted_date")
+  status          JobStatus       @default(active)
+  postedById      String          @map("posted_by_id")
+  viewCount       Int             @default(0) @map("view_count")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  postedBy        User            @relation(fields: [postedById], references: [id])
+
+  @@index([status, postedDate(sort: Desc)])
+  @@index([country, workMode])
+  @@index([experienceLevel])
+  @@map("jobs")
+}
+
+// ============================================
+// EVENTS
+// ============================================
+
+model Event {
+  id              String      @id @default(uuid())
+  name            String
+  slug            String      @unique
+  description     String
+  organizer       String
+  location        String
+  country         String
+  mode            EventMode
+  eventType       EventType   @map("event_type")
+  category        String
+  startDate       DateTime    @map("start_date")
+  endDate         DateTime?   @map("end_date")
+  registrationUrl String?     @map("registration_url")
+  websiteUrl      String?     @map("website_url")
+  capacity        Int?
+  registeredCount Int         @default(0) @map("registered_count")
+  status          EventStatus @default(published)
+  isFeatured      Boolean     @default(false) @map("is_featured")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  @@index([status, startDate])
+  @@index([eventType, mode])
+  @@index([country])
+  @@map("events")
+}
+
+// ============================================
+// NEWSLETTER
+// ============================================
+
+model NewsletterSubscriber {
+  id                String             @id @default(uuid())
+  email             String             @unique
+  name              String?
+  status            SubscriptionStatus @default(active)
+  categories        NewsletterCategory[]
+  verificationToken String?            @map("verification_token")
+  verifiedAt        DateTime?          @map("verified_at")
+  unsubscribedAt    DateTime?          @map("unsubscribed_at")
+  subscribedAt      DateTime           @default(now()) @map("subscribed_at")
+  userId            String?            @map("user_id")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  user              User?              @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@map("newsletter_subscribers")
+}
+
+model NewsletterCampaign {
+  id             String         @id @default(uuid())
+  title          String
+  subject        String
+  content        String
+  categories     NewsletterCategory[]
+  status         CampaignStatus @default(draft)
+  scheduledAt    DateTime?      @map("scheduled_at")
+  sentAt         DateTime?      @map("sent_at")
+  createdBy      String         @map("created_by")
+  recipientCount Int            @default(0) @map("recipient_count")
+  sentCount      Int            @default(0) @map("sent_count")
+  openedCount    Int            @default(0) @map("opened_count")
+  clickedCount   Int            @default(0) @map("clicked_count")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  creator        User           @relation(fields: [createdBy], references: [id])
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("newsletter_campaigns")
+}
+
+model NewsletterPreference {
+  id                 String               @id @default(uuid())
+  userId             String               @unique @map("user_id")
+  emailNotifications Boolean              @default(true) @map("email_notifications")
+  categories         NewsletterCategory[]
+  frequency          String               @default("weekly")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("newsletter_preferences")
+}
+
+// ============================================
+// AI ASSISTANT
+// ============================================
+
+model AIConversation {
+  id           String             @id @default(uuid())
+  userId       String             @map("user_id")
+  title        String
+  status       ConversationStatus @default(active)
+  messageCount Int                @default(0) @map("message_count")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  user         User               @relation(fields: [userId], references: [id])
+  messages     AIMessage[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@map("ai_conversations")
+}
+
+model AIMessage {
+  id             String     @id @default(uuid())
+  conversationId String     @map("conversation_id")
+  role           MessageRole
+  content        String
+  citations      String[]
+  metadata       Json?
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id])
+  userId         String         @map("user_id")
+
+  @@index([conversationId, createdAt])
+  @@map("ai_messages")
+}
+
+model AIUsageMetrics {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  conversationId String   @map("conversation_id")
+  messageCount   Int      @default(0) @map("message_count")
+  totalTokens    Int      @default(0) @map("total_tokens")
+  date           DateTime @db.Date
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, date])
+  @@index([userId, date(sort: Desc)])
+  @@map("ai_usage_metrics")
 }
