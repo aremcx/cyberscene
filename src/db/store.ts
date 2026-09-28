@@ -35,6 +35,13 @@ import type {
   UpdateVulnerabilityInput,
   VulnerabilityFilters,
 } from './vulnerabilitySchema';
+
+import type {
+  Tool,
+  CreateToolInput,
+  UpdateToolInput,
+  ToolFilters,
+} from './toolsSchema';
 import { generateId } from '../lib/utils';
 
 // ============================================
@@ -61,6 +68,7 @@ interface DatabaseState {
   threatReports: Map<string, ThreatReport>;
   indicators: Map<string, Indicator>;
   vulnerabilities: Map<string, Vulnerability>;
+  tools: Map<string, Tool>;
 }
 
 let state: DatabaseState = createEmptyState();
@@ -86,6 +94,7 @@ function createEmptyState(): DatabaseState {
     threatReports: new Map(),
     indicators: new Map(),
     vulnerabilities: new Map(),
+    tools: new Map(),
   };
 }
 
@@ -124,6 +133,7 @@ export const db = {
       threatReports: state.threatReports.size,
       indicators: state.indicators.size,
       vulnerabilities: state.vulnerabilities.size,
+      tools: state.tools.size,
     };
   },
 
@@ -1229,6 +1239,120 @@ export const db = {
       throw new DatabaseError('NOT_FOUND', `Vulnerability with id "${id}" not found.`);
     }
     state.vulnerabilities.delete(id);
+  },
+
+  // ============================================
+  // TOOLS
+  // ============================================
+
+  createTool(input: CreateToolInput): Tool {
+    // Check for duplicate slug
+    for (const t of state.tools.values()) {
+      if (t.slug === input.slug) {
+        throw new DatabaseError('UNIQUE_CONSTRAINT', `Tool with slug "${input.slug}" already exists.`);
+      }
+    }
+
+    const now = new Date().toISOString();
+    const tool: Tool = {
+      id: generateId(),
+      name: input.name,
+      slug: input.slug,
+      description: input.description,
+      longDescription: input.longDescription,
+      logoUrl: input.logoUrl ?? null,
+      category: input.category,
+      platforms: input.platforms,
+      license: input.license,
+      website: input.website,
+      documentationUrl: input.documentationUrl ?? null,
+      githubUrl: input.githubUrl ?? null,
+      useCases: input.useCases ?? [],
+      skillLevel: input.skillLevel,
+      relatedTutorialIds: input.relatedTutorialIds ?? [],
+      relatedArticleIds: input.relatedArticleIds ?? [],
+      pricing: input.pricing ?? null,
+      features: input.features ?? [],
+      isActive: input.isActive ?? true,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.tools.set(tool.id, tool);
+    return tool;
+  },
+
+  getToolById(id: string): Tool | null {
+    return state.tools.get(id) ?? null;
+  },
+
+  getToolBySlug(slug: string): Tool | null {
+    for (const tool of state.tools.values()) {
+      if (tool.slug === slug) return tool;
+    }
+    return null;
+  },
+
+  listTools(
+    pagination?: PaginationParams,
+    sort?: SortParams,
+    filters?: ToolFilters
+  ): { data: Tool[]; total: number } {
+    let tools = Array.from(state.tools.values());
+
+    if (filters) {
+      if (filters.category) {
+        tools = tools.filter(t => t.category === filters.category);
+      }
+      if (filters.platform) {
+        tools = tools.filter(t => t.platforms.includes(filters.platform!));
+      }
+      if (filters.license) {
+        tools = tools.filter(t => t.license === filters.license);
+      }
+      if (filters.skillLevel) {
+        tools = tools.filter(t => t.skillLevel === filters.skillLevel);
+      }
+      if (filters.isActive !== undefined) {
+        tools = tools.filter(t => t.isActive === filters.isActive);
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        tools = tools.filter(t =>
+          t.name.toLowerCase().includes(q) ||
+          t.description.toLowerCase().includes(q) ||
+          t.longDescription.toLowerCase().includes(q) ||
+          t.useCases.some(uc => uc.toLowerCase().includes(q))
+        );
+      }
+    }
+
+    tools = applySort(tools, sort);
+    return applyPagination(tools, pagination);
+  },
+
+  updateTool(id: string, input: UpdateToolInput): Tool {
+    const tool = state.tools.get(id);
+    if (!tool) throw new DatabaseError('NOT_FOUND', `Tool with id "${id}" not found.`);
+    
+    // Check for duplicate slug if changing
+    if (input.slug && input.slug !== tool.slug) {
+      for (const t of state.tools.values()) {
+        if (t.slug === input.slug && t.id !== id) {
+          throw new DatabaseError('UNIQUE_CONSTRAINT', `Tool with slug "${input.slug}" already exists.`);
+        }
+      }
+    }
+
+    const updated = { ...tool, ...input, updatedAt: new Date().toISOString() };
+    state.tools.set(id, updated);
+    return updated;
+  },
+
+  deleteTool(id: string): void {
+    if (!state.tools.has(id)) {
+      throw new DatabaseError('NOT_FOUND', `Tool with id "${id}" not found.`);
+    }
+    state.tools.delete(id);
   },
 };
 

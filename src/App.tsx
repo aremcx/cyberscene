@@ -15,6 +15,7 @@ import { SecurityAwarenessPage } from './pages/SecurityAwareness';
 import { ThreatIntelligencePage } from './pages/ThreatIntelligence';
 import { IntelligenceDashboardPage } from './pages/IntelligenceDashboard';
 import { ToolsPage } from './pages/Tools';
+import { ToolDetailPage } from './pages/ToolDetail';
 import { AcademyPage } from './pages/Academy';
 import { CommunityPage } from './pages/Community';
 import { JobsPage } from './pages/Jobs';
@@ -31,6 +32,7 @@ import { ReviewQueue } from './pages/admin/ReviewQueue';
 import { AdminCategories } from './pages/admin/AdminCategories';
 import { AdminTags } from './pages/admin/AdminTags';
 import { AdminAuthors } from './pages/admin/AdminAuthors';
+import { AdminTools } from './pages/admin/AdminTools';
 import { NotFoundPage } from './pages/NotFound';
 import { ROUTES } from './config/routes';
 import { initializeDatabase } from './db';
@@ -66,6 +68,7 @@ export default function App() {
                 <Route path={ROUTES.THREAT_INTEL} element={<ThreatIntelligencePage />} />
                 <Route path="/intelligence" element={<IntelligenceDashboardPage />} />
                 <Route path={ROUTES.TOOLS} element={<ToolsPage />} />
+                <Route path="/tools/:slug" element={<ToolDetailPage />} />
                 <Route path={ROUTES.ACADEMY} element={<AcademyPage />} />
                 <Route path={ROUTES.COMMUNITY} element={<CommunityPage />} />
                 <Route path={ROUTES.JOBS} element={<JobsPage />} />
@@ -138,6 +141,14 @@ export default function App() {
                   element={
                     <AdminRoute>
                       <AdminAuthors />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/tools"
+                  element={
+                    <AdminRoute>
+                      <AdminTools />
                     </AdminRoute>
                   }
                 />
