@@ -9,13 +9,14 @@ import { hasPermission, PERMISSIONS } from '../../lib/authorization';
 
 const NAV_ITEMS = [
   { label: 'Articles', path: ROUTES.ARTICLES },
-  { label: 'Threat Intel', path: ROUTES.THREAT_INTEL },
+  { label: 'News', path: '/news' },
+  { label: 'Tutorials', path: '/tutorials' },
+  { label: 'Research', path: '/research' },
+  { label: 'Threats', path: ROUTES.THREAT_INTEL },
   { label: 'Tools', path: ROUTES.TOOLS },
   { label: 'Academy', path: ROUTES.ACADEMY },
   { label: 'Community', path: ROUTES.COMMUNITY },
   { label: 'Jobs', path: ROUTES.JOBS },
-  { label: 'DB Demo', path: ROUTES.DEMO_DATABASE },
-  { label: 'Auth Demo', path: ROUTES.AUTH_DEMO },
 ];
 
 export function Header() {

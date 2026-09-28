@@ -7,6 +7,12 @@ import { AdminRoute } from './components/auth/AdminRoute';
 import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/Home';
 import { ArticlesPage } from './pages/Articles';
+import { NewsPage } from './pages/News';
+import { TutorialsPage } from './pages/Tutorials';
+import { ResearchPage } from './pages/Research';
+import { VulnerabilitiesPage } from './pages/Vulnerabilities';
+import { EventsPage } from './pages/Events';
+import { SecurityAwarenessPage } from './pages/SecurityAwareness';
 import { ThreatIntelPage } from './pages/ThreatIntel';
 import { ToolsPage } from './pages/Tools';
 import { AcademyPage } from './pages/Academy';
@@ -44,6 +50,12 @@ export default function App() {
                 {/* Public Routes */}
                 <Route path={ROUTES.HOME} element={<HomePage />} />
                 <Route path={ROUTES.ARTICLES} element={<ArticlesPage />} />
+                <Route path="/news" element={<NewsPage />} />
+                <Route path="/tutorials" element={<TutorialsPage />} />
+                <Route path="/research" element={<ResearchPage />} />
+                <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/security-awareness" element={<SecurityAwarenessPage />} />
                 <Route path={ROUTES.THREAT_INTEL} element={<ThreatIntelPage />} />
                 <Route path={ROUTES.TOOLS} element={<ToolsPage />} />
                 <Route path={ROUTES.ACADEMY} element={<AcademyPage />} />

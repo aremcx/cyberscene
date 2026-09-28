@@ -1,18 +1,20 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../config/routes';
 import { APP_NAME, APP_DESCRIPTION } from '../../config/constants';
+import { Newsletter } from '../ui';
 
 const FOOTER_LINKS = {
-  Platform: [
+  Content: [
     { label: 'Articles', path: ROUTES.ARTICLES },
-    { label: 'Tutorials', path: ROUTES.TUTORIALS },
-    { label: 'News', path: ROUTES.NEWS },
-    { label: 'Research', path: ROUTES.RESEARCH },
+    { label: 'News', path: '/news' },
+    { label: 'Tutorials', path: '/tutorials' },
+    { label: 'Research', path: '/research' },
   ],
   Intelligence: [
     { label: 'Threat Intel', path: ROUTES.THREAT_INTEL },
-    { label: 'CVE Database', path: ROUTES.CVE_DATABASE },
+    { label: 'Vulnerabilities', path: '/vulnerabilities' },
     { label: 'Tools Directory', path: ROUTES.TOOLS },
+    { label: 'Security Awareness', path: '/security-awareness' },
   ],
   Learn: [
     { label: 'Academy', path: ROUTES.ACADEMY },
@@ -22,7 +24,7 @@ const FOOTER_LINKS = {
   Community: [
     { label: 'Community', path: ROUTES.COMMUNITY },
     { label: 'Jobs', path: ROUTES.JOBS },
-    { label: 'Events', path: ROUTES.EVENTS },
+    { label: 'Events', path: '/events' },
   ],
 };
 
@@ -30,9 +32,9 @@ export function Footer() {
   return (
     <footer className="border-t border-gray-800 bg-gray-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-          {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
+          {/* Brand + Newsletter */}
+          <div className="col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,9 +43,10 @@ export function Footer() {
               </div>
               <span className="text-lg font-bold text-white">{APP_NAME}</span>
             </div>
-            <p className="text-sm text-gray-500 leading-relaxed">
+            <p className="text-sm text-gray-500 leading-relaxed mb-4">
               {APP_DESCRIPTION}
             </p>
+            <Newsletter variant="compact" />
           </div>
 
           {/* Link sections */}
