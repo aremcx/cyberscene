@@ -9,11 +9,7 @@ import { db } from '../db/store';
 import type { Article, Category, Tag, User } from '../db/schema';
 import { ArticleStatus } from '../db/schema';
 
-// ============================================
-// SEARCH TYPES
-// ============================================
-
-export type SearchableType = 
+export type SearchableType =
   | 'article'
   | 'author'
   | 'category'
@@ -58,13 +54,6 @@ export interface SearchResponse {
   };
 }
 
-// ============================================
-// SEARCH IMPLEMENTATION
-// ============================================
-
-/**
- * Normalize text for search (lowercase, remove special chars)
- */
 function normalizeText(text: string): string {
   return text
     .toLowerCase()
@@ -73,138 +62,133 @@ function normalizeText(text: string): string {
     .trim();
 }
 
-/**
- * Calculate relevance score based on query matches
- */
 function calculateScore(text: string, query: string): number {
   const normalizedText = normalizeText(text);
   const normalizedQuery = normalizeText(query);
-  const queryTerms = normalizedQuery.split(' ');
-  
+  const queryTerms = normalizedQuery.split(' ').filter(Boolean);
+
   let score = 0;
-  
-  // Exact match gets highest score
+
   if (normalizedText.includes(normalizedQuery)) {
     score += 100;
   }
-  
-  // Term matches
+
   for (const term of queryTerms) {
     if (term.length < 2) continue;
-    
     if (normalizedText.includes(term)) {
       score += 10;
-      
-      // Bonus for term at start
       if (normalizedText.startsWith(term)) {
         score += 5;
       }
     }
   }
-  
+
   return score;
 }
 
-/**
- * Highlight search terms in text
- */
 function highlightText(text: string, query: string): string {
   if (!query) return text;
-  
-  const terms = normalizeText(query).split(' ').filter(t => t.length >= 2);
+
+  const terms = normalizeText(query).split(' ').filter((t) => t.length >= 2);
   let highlighted = text;
-  
+
   for (const term of terms) {
     const regex = new RegExp(`(${term})`, 'gi');
     highlighted = highlighted.replace(regex, '<mark class="bg-emerald-500/20 text-emerald-300 px-0.5 rounded">$1</mark>');
   }
-  
+
   return highlighted;
 }
 
-/**
- * Search articles
- */
+function buildArticleMetadataCache() {
+  const allArticles = db.listArticles({ page: 1, pageSize: 1000 }).data;
+  const categories = new Map(db.listCategories().map((category) => [category.id, category]));
+  const authors = new Map(db.listUsers({ page: 1, pageSize: 1000 }).data.map((user) => [user.id, user]));
+  const tagsByArticleId = new Map<string, Tag[]>();
+
+  for (const article of allArticles) {
+    tagsByArticleId.set(article.id, db.getArticleTags(article.id));
+  }
+
+  return { allArticles, categories, authors, tagsByArticleId };
+}
+
 function searchArticles(
   query: string,
   filters: SearchFilters,
   page: number,
   pageSize: number
 ): { results: SearchResult[]; total: number } {
-  let articles = db.listArticles({ page: 1, pageSize: 1000 }).data;
-  
-  // Filter by status (default to published only)
+  const { allArticles, categories, authors, tagsByArticleId } = buildArticleMetadataCache();
+
+  let articles = allArticles;
+
   if (filters.status) {
-    articles = articles.filter(a => a.status === filters.status);
+    articles = articles.filter((a) => a.status === filters.status);
   } else {
-    articles = articles.filter(a => a.status === ArticleStatus.PUBLISHED);
+    articles = articles.filter((a) => a.status === ArticleStatus.PUBLISHED);
   }
-  
-  // Filter by category
+
   if (filters.categoryId) {
-    articles = articles.filter(a => a.categoryId === filters.categoryId);
+    articles = articles.filter((a) => a.categoryId === filters.categoryId);
   }
-  
-  // Filter by content type
+
   if (filters.contentType) {
-    articles = articles.filter(a => a.contentType === filters.contentType);
+    articles = articles.filter((a) => a.contentType === filters.contentType);
   }
-  
-  // Filter by difficulty
+
   if (filters.difficulty) {
-    articles = articles.filter(a => a.difficulty === filters.difficulty);
+    articles = articles.filter((a) => a.difficulty === filters.difficulty);
   }
-  
-  // Filter by author
+
   if (filters.authorId) {
-    articles = articles.filter(a => a.authorId === filters.authorId);
+    articles = articles.filter((a) => a.authorId === filters.authorId);
   }
-  
-  // Filter by tags
+
   if (filters.tagIds && filters.tagIds.length > 0) {
-    articles = articles.filter(article => {
-      const articleTags = db.getArticleTags(article.id);
-      return filters.tagIds!.some(tagId => articleTags.some(t => t.id === tagId));
+    const allowedTagIds = new Set(filters.tagIds);
+    articles = articles.filter((article) => {
+      const articleTags = tagsByArticleId.get(article.id) ?? [];
+      return articleTags.some((tag) => allowedTagIds.has(tag.id));
     });
   }
-  
-  // Filter by date range
+
   if (filters.dateFrom) {
     const fromDate = new Date(filters.dateFrom);
-    articles = articles.filter(a => new Date(a.publishedAt || a.createdAt) >= fromDate);
+    articles = articles.filter((a) => new Date(a.publishedAt || a.createdAt) >= fromDate);
   }
+
   if (filters.dateTo) {
     const toDate = new Date(filters.dateTo);
-    articles = articles.filter(a => new Date(a.publishedAt || a.createdAt) <= toDate);
+    articles = articles.filter((a) => new Date(a.publishedAt || a.createdAt) <= toDate);
   }
-  
-  // Search by query
+
   if (query) {
     articles = articles
-      .map(article => {
-        const titleScore = calculateScore(article.title, query) * 2; // Title matches weighted higher
+      .map((article) => {
+        const titleScore = calculateScore(article.title, query) * 2;
         const excerptScore = calculateScore(article.excerpt, query);
-        const contentScore = calculateScore(article.content, query) * 0.5; // Content matches weighted lower
-        
+        const contentScore = calculateScore(article.content, query) * 0.5;
+
         return {
           article,
           score: titleScore + excerptScore + contentScore,
         };
       })
-      .filter(item => item.score > 0)
+      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
-      .map(item => item.article);
+      .map((item) => item.article);
   }
-  
+
   const total = articles.length;
   const start = (page - 1) * pageSize;
   const paginatedArticles = articles.slice(start, start + pageSize);
-  
-  const results: SearchResult[] = paginatedArticles.map(article => {
-    const author = db.getUserById(article.authorId);
-    const category = article.categoryId ? db.getCategoryById(article.categoryId) : null;
-    const tags = db.getArticleTags(article.id);
-    
+
+  const results: SearchResult[] = paginatedArticles.map((article) => {
+    const author = authors.get(article.authorId) ?? null;
+    const category = article.categoryId ? categories.get(article.categoryId) ?? null : null;
+    const tags = tagsByArticleId.get(article.id) ?? [];
+
     return {
       id: article.id,
       type: 'article',
@@ -229,93 +213,91 @@ function searchArticles(
           name: category.name,
           slug: category.slug,
         } : null,
-        tags: tags.map(t => ({ id: t.id, name: t.name, slug: t.slug })),
+        tags: tags.map((tag) => ({ id: tag.id, name: tag.name, slug: tag.slug })),
         viewCount: article.viewCount,
         isFeatured: article.isFeatured,
       },
     };
   });
-  
+
   return { results, total };
 }
 
-/**
- * Search authors
- */
 function searchAuthors(
   query: string,
   page: number,
   pageSize: number
 ): { results: SearchResult[]; total: number } {
-  let authors = db.listUsers({ page: 1, pageSize: 1000 }).data;
-  
+  const authors = db.listUsers({ page: 1, pageSize: 1000 }).data;
+  const articleCountsByAuthor = new Map<string, number>();
+  const allArticles = db.listArticles({ page: 1, pageSize: 1000 }).data;
+
+  for (const article of allArticles) {
+    articleCountsByAuthor.set(article.authorId, (articleCountsByAuthor.get(article.authorId) ?? 0) + 1);
+  }
+
+  let filteredAuthors = authors;
+
   if (query) {
-    authors = authors
-      .map(author => ({
+    filteredAuthors = authors
+      .map((author) => ({
         author,
         score: calculateScore(author.displayName + ' ' + (author.bio || ''), query),
       }))
-      .filter(item => item.score > 0)
+      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
-      .map(item => item.author);
+      .map((item) => item.author);
   }
-  
-  const total = authors.length;
+
+  const total = filteredAuthors.length;
   const start = (page - 1) * pageSize;
-  const paginatedAuthors = authors.slice(start, start + pageSize);
-  
-  const results: SearchResult[] = paginatedAuthors.map(author => {
-    const { data: articles } = db.listArticles({ page: 1, pageSize: 1000 }, undefined, { authorId: author.id });
-    
-    return {
-      id: author.id,
-      type: 'author',
-      title: author.displayName,
-      excerpt: author.bio || 'Cybersecurity professional',
-      url: `/authors/${author.id}`,
-      score: query ? calculateScore(author.displayName + ' ' + (author.bio || ''), query) : 0,
-      highlightedTitle: query ? highlightText(author.displayName, query) : undefined,
-      highlightedExcerpt: query && author.bio ? highlightText(author.bio, query) : undefined,
-      metadata: {
-        email: author.email,
-        avatar: author.avatarUrl,
-        articleCount: articles.length,
-        joinedAt: author.createdAt,
-      },
-    };
-  });
-  
+  const paginatedAuthors = filteredAuthors.slice(start, start + pageSize);
+
+  const results: SearchResult[] = paginatedAuthors.map((author) => ({
+    id: author.id,
+    type: 'author',
+    title: author.displayName,
+    excerpt: author.bio || 'Cybersecurity professional',
+    url: `/authors/${author.id}`,
+    score: query ? calculateScore(author.displayName + ' ' + (author.bio || ''), query) : 0,
+    highlightedTitle: query ? highlightText(author.displayName, query) : undefined,
+    highlightedExcerpt: query && author.bio ? highlightText(author.bio, query) : undefined,
+    metadata: {
+      email: author.email,
+      avatar: author.avatarUrl,
+      articleCount: articleCountsByAuthor.get(author.id) ?? 0,
+      joinedAt: author.createdAt,
+    },
+  }));
+
   return { results, total };
 }
 
-/**
- * Search categories
- */
 function searchCategories(
   query: string,
   page: number,
   pageSize: number
 ): { results: SearchResult[]; total: number } {
   let categories = db.listCategories();
-  
+
   if (query) {
     categories = categories
-      .map(category => ({
+      .map((category) => ({
         category,
         score: calculateScore(category.name + ' ' + (category.description || ''), query),
       }))
-      .filter(item => item.score > 0)
+      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
-      .map(item => item.category);
+      .map((item) => item.category);
   }
-  
+
   const total = categories.length;
   const start = (page - 1) * pageSize;
   const paginatedCategories = categories.slice(start, start + pageSize);
-  
-  const results: SearchResult[] = paginatedCategories.map(category => {
+
+  const results: SearchResult[] = paginatedCategories.map((category) => {
     const articleCount = db.getCategoryArticleCount(category.id);
-    
+
     return {
       id: category.id,
       type: 'category',
@@ -332,38 +314,35 @@ function searchCategories(
       },
     };
   });
-  
+
   return { results, total };
 }
 
-/**
- * Search tags
- */
 function searchTags(
   query: string,
   page: number,
   pageSize: number
 ): { results: SearchResult[]; total: number } {
   let tags = db.listTags();
-  
+
   if (query) {
     tags = tags
-      .map(tag => ({
+      .map((tag) => ({
         tag,
         score: calculateScore(tag.name, query),
       }))
-      .filter(item => item.score > 0)
+      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
-      .map(item => item.tag);
+      .map((item) => item.tag);
   }
-  
+
   const total = tags.length;
   const start = (page - 1) * pageSize;
   const paginatedTags = tags.slice(start, start + pageSize);
-  
-  const results: SearchResult[] = paginatedTags.map(tag => {
+
+  const results: SearchResult[] = paginatedTags.map((tag) => {
     const articleCount = db.getTagArticleCount(tag.id);
-    
+
     return {
       id: tag.id,
       type: 'tag',
@@ -378,13 +357,10 @@ function searchTags(
       },
     };
   });
-  
+
   return { results, total };
 }
 
-/**
- * Main search function
- */
 export function search(
   filters: SearchFilters,
   page = 1,
@@ -392,7 +368,7 @@ export function search(
 ): SearchResponse {
   const query = filters.query || '';
   const types = filters.types || ['article', 'author', 'category', 'tag'];
-  
+
   let allResults: SearchResult[] = [];
   const facets = {
     types: {} as Record<SearchableType, number>,
@@ -400,57 +376,48 @@ export function search(
     tags: {} as Record<string, number>,
     authors: {} as Record<string, number>,
   };
-  
-  // Search each type
+
   if (types.includes('article')) {
     const { results, total } = searchArticles(query, filters, 1, 1000);
     allResults = allResults.concat(results);
     facets.types.article = total;
-    
-    // Build category facets
+
     for (const result of results) {
       const category = result.metadata.category as { id: string; name: string } | null;
       if (category) {
         facets.categories[category.id] = (facets.categories[category.id] || 0) + 1;
       }
-    }
-    
-    // Build tag facets
-    for (const result of results) {
+
       const tags = result.metadata.tags as Array<{ id: string; name: string }>;
       for (const tag of tags) {
         facets.tags[tag.id] = (facets.tags[tag.id] || 0) + 1;
       }
-    }
-    
-    // Build author facets
-    for (const result of results) {
+
       const author = result.metadata.author as { id: string; name: string } | null;
       if (author) {
         facets.authors[author.id] = (facets.authors[author.id] || 0) + 1;
       }
     }
   }
-  
+
   if (types.includes('author')) {
     const { results, total } = searchAuthors(query, 1, 1000);
     allResults = allResults.concat(results);
     facets.types.author = total;
   }
-  
+
   if (types.includes('category')) {
     const { results, total } = searchCategories(query, 1, 1000);
     allResults = allResults.concat(results);
     facets.types.category = total;
   }
-  
+
   if (types.includes('tag')) {
     const { results, total } = searchTags(query, 1, 1000);
     allResults = allResults.concat(results);
     facets.types.tag = total;
   }
-  
-  // Sort by score (if query) or by type priority
+
   if (query) {
     allResults.sort((a, b) => b.score - a.score);
   } else {
@@ -462,12 +429,11 @@ export function search(
     };
     allResults.sort((a, b) => typePriority[a.type] - typePriority[b.type]);
   }
-  
-  // Paginate
+
   const total = allResults.length;
   const start = (page - 1) * pageSize;
   const paginatedResults = allResults.slice(start, start + pageSize);
-  
+
   return {
     results: paginatedResults,
     total,
@@ -478,37 +444,33 @@ export function search(
   };
 }
 
-/**
- * Get search suggestions (autocomplete)
- */
 export function getSearchSuggestions(query: string, limit = 5): string[] {
   if (!query || query.length < 2) return [];
-  
+
   const suggestions = new Set<string>();
-  
-  // Get article titles
+  const normalized = query.toLowerCase();
+
   const articles = db.listArticles({ page: 1, pageSize: 100 }).data;
   for (const article of articles) {
-    if (article.title.toLowerCase().includes(query.toLowerCase())) {
+    if (article.title.toLowerCase().includes(normalized)) {
       suggestions.add(article.title);
     }
   }
-  
-  // Get category names
+
   const categories = db.listCategories();
   for (const category of categories) {
-    if (category.name.toLowerCase().includes(query.toLowerCase())) {
+    if (category.name.toLowerCase().includes(normalized)) {
       suggestions.add(category.name);
     }
   }
-  
-  // Get tag names
+
   const tags = db.listTags();
   for (const tag of tags) {
-    if (tag.name.toLowerCase().includes(query.toLowerCase())) {
+    if (tag.name.toLowerCase().includes(normalized)) {
       suggestions.add(tag.name);
     }
   }
-  
+
   return Array.from(suggestions).slice(0, limit);
 }
+

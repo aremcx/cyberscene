@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { db } from '../db/store';
 import { ToolCard } from '../components/tools/ToolCard';
 import { Input, Select, EmptyState, Badge } from '../components/ui';
@@ -22,30 +22,36 @@ export function ToolsPage() {
     setTools(result.data);
   };
 
-  const filteredTools = tools.filter(tool => {
-    const matchesSearch = searchQuery === '' || 
-      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tool.longDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tool.useCases.some(uc => uc.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesCategory = categoryFilter === 'all' || tool.category === categoryFilter;
-    const matchesPlatform = platformFilter === 'all' || tool.platforms.includes(platformFilter as ToolPlatform);
-    const matchesLicense = licenseFilter === 'all' || tool.license === licenseFilter;
-    const matchesSkill = skillFilter === 'all' || tool.skillLevel === skillFilter;
+  const categoryCounts = useMemo(() => {
+    return tools.reduce((acc, tool) => {
+      acc[tool.category] = (acc[tool.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [tools]);
 
-    return matchesSearch && matchesCategory && matchesPlatform && matchesLicense && matchesSkill;
-  });
+  const filteredTools = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    return tools.filter((tool) => {
+      const matchesSearch =
+        normalizedQuery === '' ||
+        tool.name.toLowerCase().includes(normalizedQuery) ||
+        tool.description.toLowerCase().includes(normalizedQuery) ||
+        tool.longDescription.toLowerCase().includes(normalizedQuery) ||
+        tool.useCases.some((uc) => uc.toLowerCase().includes(normalizedQuery));
+
+      const matchesCategory = categoryFilter === 'all' || tool.category === categoryFilter;
+      const matchesPlatform = platformFilter === 'all' || tool.platforms.includes(platformFilter as ToolPlatform);
+      const matchesLicense = licenseFilter === 'all' || tool.license === licenseFilter;
+      const matchesSkill = skillFilter === 'all' || tool.skillLevel === skillFilter;
+
+      return matchesSearch && matchesCategory && matchesPlatform && matchesLicense && matchesSkill;
+    });
+  }, [tools, searchQuery, categoryFilter, platformFilter, licenseFilter, skillFilter]);
 
   const getCategoryLabel = (category: ToolCategory) => {
     return category.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
-
-  // Calculate category counts
-  const categoryCounts = tools.reduce((acc, tool) => {
-    acc[tool.category] = (acc[tool.category] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -56,7 +62,6 @@ export function ToolsPage() {
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/30">
           <div className="text-2xl font-bold text-white">{tools.length}</div>
@@ -82,7 +87,6 @@ export function ToolsPage() {
         </div>
       </div>
 
-      {/* Search and Filters */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
         <Input
           placeholder="Search tools..."
@@ -142,7 +146,6 @@ export function ToolsPage() {
         />
       </div>
 
-      {/* Results count */}
       <div className="mb-6 flex items-center justify-between">
         <div className="text-sm text-gray-400">
           Showing <span className="font-medium text-white">{filteredTools.length}</span> of{' '}
@@ -150,7 +153,6 @@ export function ToolsPage() {
         </div>
       </div>
 
-      {/* Tools Grid */}
       {filteredTools.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTools.map((tool) => (
@@ -167,3 +169,4 @@ export function ToolsPage() {
     </div>
   );
 }
+
