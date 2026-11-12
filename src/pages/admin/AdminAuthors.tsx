@@ -18,14 +18,19 @@ export function AdminAuthors() {
 
   const loadAuthors = () => {
     const { data: users } = db.listUsers({ page: 1, pageSize: 100 });
-    
-    const authorsWithCounts = users.map(user => {
-      const { data: articles } = db.listArticles({ page: 1, pageSize: 1000 }, undefined, { authorId: user.id });
-      return {
+    const { data: allArticles } = db.listArticles({ page: 1, pageSize: 1000 });
+
+    const articleCounts = new Map<string, number>();
+    for (const article of allArticles) {
+      articleCounts.set(article.authorId, (articleCounts.get(article.authorId) ?? 0) + 1);
+    }
+
+    const authorsWithCounts = users
+      .map((user) => ({
         ...user,
-        articleCount: articles.length,
-      };
-    }).filter(user => user.articleCount > 0);
+        articleCount: articleCounts.get(user.id) ?? 0,
+      }))
+      .filter((user) => user.articleCount > 0);
 
     setAuthors(authorsWithCounts);
   };
