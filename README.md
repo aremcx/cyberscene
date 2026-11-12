@@ -2,9 +2,9 @@
 
 # 🛡️ CyberVault
 
-### 网络安全情报平台
+### Cyber Security Intelligence Platform
 
-**文章 · 威胁情报 · 漏洞管理 · 工具目录 · 学习学院 · 社区**
+**Articles · Threat Intelligence · Vulnerability Management · Tool Directory · Learning Academy · Community**
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?style=flat-square&logo=typescript)]()
@@ -14,572 +14,576 @@
 [![Security](https://img.shields.io/badge/security-A%2B-green?style=flat-square)]()
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)]()
 
-[开始使用](#-快速开始) · [文档](#-文档) · [演示](#-在线演示) · [贡献](#-贡献)
+[Get Started](#-quick-start) · [Documentation](#-documentation) · [Demo](#-online-demo) · [Contribute](#-contributing)
 
 </div>
 
 ---
 
-## 📖 简介
+## 📖 Overview
 
-CyberVault 是一个**全面的网络安全知识、情报、学习和社区平台**。它整合了文章发布、威胁情报、漏洞追踪、安全工具、在线教育、职业发展和社区互动等功能，为网络安全专业人士提供一站式解决方案。
+CyberVault is a comprehensive cyber security knowledge, intelligence, learning, and community platform. It combines article publishing, threat intelligence, vulnerability tracking, security tooling, online education, career development, and community collaboration into a unified experience.
 
-### 🎯 核心特性
+It is designed for security professionals, researchers, students, and teams who need a centralized place to discover, learn, share, and manage cyber security resources.
 
-- 📰 **内容管理** - 强大的文章编辑器，支持 Markdown、工作流、版本控制
-- 🛡️ **威胁情报** - 威胁演员、恶意软件、威胁报告、IOC 追踪
-- 🔒 **漏洞管理** - CVE 数据库、CVSS 评分、利用状态追踪
-- 🔧 **工具目录** - 22+ 安全工具，13 个分类，详细评测
-- 🎓 **学习学院** - 学习路径、课程、实验室、测验、游戏化
-- 👥 **社区功能** - 讨论、问答、关注、举报、审核
-- 💼 **职业发展** - 工作板、活动、会议、培训
-- 🤖 **AI 助手** - 基于知识库的智能问答
-- 📧 **通讯系统** - 订阅、活动、通知
+### 🎯 Core Capabilities
 
----
-
-## ✨ 主要功能
-
-### 📰 内容管理系统
-
-- ✅ 富文本 Markdown 编辑器
-- ✅ 实时预览和语法高亮
-- ✅ 文章工作流（草稿 → 审核 → 发布）
-- ✅ 版本历史和修订追踪
-- ✅ 分类和标签系统
-- ✅ SEO 优化字段
-- ✅ 评论和书签功能
-
-### 🛡️ 威胁情报
-
-- ✅ 威胁演员数据库（5+ 演员）
-- ✅ 恶意软件信息库（5+ 恶意软件）
-- ✅ 威胁报告（5+ 报告）
-- ✅ 失陷指标（IOC）追踪
-- ✅ 情报仪表板
-- ✅ 搜索和过滤
-
-### 🔒 漏洞管理
-
-- ✅ CVE 数据库（8+ CVE）
-- ✅ CVSS 评分和向量
-- ✅ 严重性过滤
-- ✅ 利用状态追踪
-- ✅ 修复指南
-- ✅ 相关文章链接
-
-### 🔧 工具目录
-
-- ✅ 22+ 安全工具
-- ✅ 13 个分类（SIEM、EDR、OSINT 等）
-- ✅ 详细工具资料
-- ✅ 使用案例和功能
-- ✅ 技能级别指示
-- ✅ 平台支持信息
-
-### 🎓 网络安全学院
-
-- ✅ 4 个学习路径
-  - 网络安全基础
-  - SOC 分析师
-  - 渗透测试
-  - 数字取证
-- ✅ 9+ 课程
-- ✅ 4+ 实践实验室
-- ✅ 测验和评估
-- ✅ 积分和徽章系统
-- ✅ 进度追踪
-
-### 👥 社区功能
-
-- ✅ 讨论论坛
-- ✅ 嵌套回复
-- ✅ 用户关注
-- ✅ 内容举报
-- ✅ 审核工作流
-- ✅ 投票系统
-
-### 💼 职业发展
-
-- ✅ 工作板（8+ 职位）
-- ✅ 非洲地区聚焦
-- ✅ 远程/混合/现场工作
-- ✅ 活动日历（8+ 活动）
-- ✅ 会议、网络研讨会、CTF
-- ✅ 注册追踪
-
-### 🤖 AI 助手
-
-- ✅ 基于知识库的问答
-- ✅ 文章引用
-- ✅ 对话历史
-- ✅ 速率限制（20 请求/小时）
-- ✅ 安全防护
-- ✅ 使用指标追踪
-
-### 📧 通讯与通知
-
-- ✅ 邮件订阅
-- ✅ 6 个分类偏好
-- ✅ 活动管理
-- ✅ 应用内通知
-- ✅ 通知偏好设置
-- ✅ 批量操作
+- 📰 Content management for publishing articles and knowledge resources
+- 🛡️ Threat intelligence for tracking actors, malware, reports, and IOCs
+- 🔒 Vulnerability and CVE lifecycle management
+- 🔧 Security tool directory with structured evaluation and categorization
+- 🎓 Learning academy with curated learning paths, labs, and assessments
+- 👥 Community features for discussion and collaboration
+- 💼 Career development through jobs, events, and training
+- 🤖 AI-powered knowledge assistant
+- 📧 Communication and notification workflows
 
 ---
 
-## 🛠️ 技术栈
+## ✨ Key Features
 
-### 前端
-- **框架**: React 18 + TypeScript
-- **构建工具**: Vite 6
-- **样式**: Tailwind CSS 4
-- **路由**: React Router 6
-- **状态管理**: React Context + Custom Hooks
-- **动画**: Framer Motion
-- **图标**: Lucide React
+### 📰 Content Management System
 
-### 后端（准备中）
-- **数据库**: PostgreSQL（Prisma ORM）
-- **认证**: Supabase Auth
-- **存储**: Supabase Storage
-- **实时**: Supabase Realtime
+- Rich text and Markdown authoring
+- Live preview and syntax highlighting
+- Editorial workflow: draft → review → publish
+- Version history and revision tracking
+- Categorization and tagging
+- SEO metadata support
+- Comments and bookmarks
 
-### 安全
-- **密码哈希**: PBKDF2（100,000 次迭代）
-- **会话管理**: 安全的令牌生成
-- **速率限制**: 可配置的限制
-- **RBAC**: 7 个角色，24+ 权限
-- **审计日志**: 完整的操作追踪
+### 🛡️ Threat Intelligence
 
-### 测试
-- **测试框架**: Vitest
-- **测试覆盖**: 90%
-- **测试数量**: 110 个测试
-- **类型检查**: TypeScript strict mode
+- Threat actor database
+- Malware information repository
+- Threat report library
+- IOC tracking and correlation
+- Intelligence dashboard
+- Search and filtering
+
+### 🔒 Vulnerability Management
+
+- CVE database and tracking
+- CVSS scoring and vector analysis
+- Severity filtering
+- Exploit status monitoring
+- Remediation guidance
+- Related article linking
+
+### 🔧 Tool Directory
+
+- 22+ security tools
+- 13 categories including SIEM, EDR, OSINT, and more
+- Detailed tool profiles and capabilities
+- Use-case and feature summaries
+- Skill-level indicators
+- Platform support information
+
+### 🎓 Cyber Security Academy
+
+- 4 learning paths
+  - Cybersecurity Foundations
+  - SOC Analyst
+  - Penetration Testing
+  - Digital Forensics
+- 9+ courses
+- 4+ hands-on labs
+- Assessments and quizzes
+- Points and badge system
+- Progress tracking
+
+### 👥 Community Features
+
+- Discussion forum
+- Nested replies
+- User following
+- Content reporting
+- Moderation workflow
+- Voting system
+
+### 💼 Career Development
+
+- Job board with 8+ openings
+- Region-focused listings
+- Remote, hybrid, and onsite options
+- Event calendar covering 8+ events
+- Conferences, webinars, and CTFs
+- Registration tracking
+
+### 🤖 AI Assistant
+
+- Knowledge-base Q&A
+- Article citation support
+- Conversation history
+- Rate limiting (20 requests/hour)
+- Safety guardrails
+- Usage analytics
+
+### 📧 Communications and Notifications
+
+- Email subscriptions
+- 6 preference categories
+- Event and activity management
+- In-app notifications
+- Notification preferences
+- Batch actions
 
 ---
 
-## 🚀 快速开始
+## 🛠️ Technology Stack
 
-### 前置要求
+### Frontend
+- React 18 + TypeScript
+- Vite 6
+- Tailwind CSS 4
+- React Router 6
+- React Context + custom hooks
+- Framer Motion
+- Lucide React
 
-- Node.js 18+ 
-- npm 或 yarn
-- PostgreSQL 14+（生产环境）
+### Backend (Planned)
+- PostgreSQL via Prisma ORM
+- Supabase Auth
+- Supabase Storage
+- Supabase Realtime
 
-### 安装
+### Security
+- PBKDF2 password hashing (100,000 iterations)
+- Secure session handling
+- Role-based access control (RBAC)
+- 7 user roles and 24+ permissions
+- Audit logging
+- Rate limiting
+
+### Testing
+- Vitest
+- 90% test coverage
+- 110 tests
+- TypeScript strict mode
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- PostgreSQL 14+ (for production)
+
+### Installation
 
 ```bash
-# 克隆仓库
-git clone https://github.com/你的用户名/cybervault.git
+# Clone the repository
+git clone https://github.com/your-username/cybervault.git
 cd cybervault
 
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动开发服务器
+# Start the development server
 npm run dev
 ```
 
-访问 http://localhost:3000
+Open http://localhost:3000
 
-### 演示账号
+### Demo Accounts
 
-所有演示账号密码：**`Demo@1234`**
+All demo accounts use the same password: **Demo@1234**
 
-| 邮箱 | 角色 |
+| Email | Role |
 |------|------|
-| superadmin@cybervault.dev | 超级管理员 |
-| admin@cybervault.dev | 管理员 |
-| editor@cybervault.dev | 编辑 |
-| author@cybervault.dev | 作者 |
-| user@cybervault.dev | 普通用户 |
+| superadmin@cybervault.dev | Super Administrator |
+| admin@cybervault.dev | Administrator |
+| editor@cybervault.dev | Editor |
+| author@cybervault.dev | Author |
+| user@cybervault.dev | Standard User |
 
 ---
 
-## 📦 可用命令
+## 📦 Available Commands
 
 ```bash
-# 开发
-npm run dev              # 启动开发服务器
-npm run build            # 构建生产版本
-npm run preview          # 预览生产版本
+# Development
+npm run dev              # Start the development server
+npm run build            # Build the production bundle
+npm run preview          # Preview the production build
 
-# 测试
-npm test                 # 运行所有测试
-npm run test:watch       # 监听模式运行测试
-npm run test:coverage    # 运行测试并生成覆盖率报告
-npm run test:auth        # 运行认证测试
-npm run test:rbac        # 运行 RBAC 测试
-npm run test:security    # 运行安全测试
+# Testing
+npm test                 # Run the full test suite
+npm run test:watch       # Run tests in watch mode
+npm run test:coverage    # Generate coverage report
+npm run test:auth        # Run authentication tests
+npm run test:rbac        # Run RBAC tests
+npm run test:security    # Run security tests
 
-# 代码质量
-npm run typecheck        # TypeScript 类型检查
-npm run lint             # 代码检查
+# Code Quality
+npm run typecheck        # TypeScript type checking
+npm run lint             # Lint the codebase
 
-# 数据库（生产环境）
-npx prisma generate      # 生成 Prisma 客户端
-npx prisma migrate dev   # 运行数据库迁移
-npm run seed             # 填充演示数据
-npx prisma studio        # 打开数据库 GUI
+# Database (production)
+npx prisma generate      # Generate Prisma client
+npx prisma migrate dev   # Run database migrations
+npm run seed             # Seed demo data
+npx prisma studio        # Open Prisma Studio
 ```
 
 ---
 
-## 📁 项目结构
+## 📁 Project Structure
 
-```
+```text
 cybervault/
 ├── src/
-│   ├── components/          # React 组件
-│   │   ├── ui/             # UI 基础组件
-│   │   ├── auth/           # 认证组件
-│   │   ├── layout/         # 布局组件
-│   │   ├── content/        # 内容组件
-│   │   ├── search/         # 搜索组件
-│   │   ├── academy/        # 学院组件
-│   │   ├── community/      # 社区组件
-│   │   ├── jobs/           # 工作组件
-│   │   ├── events/         # 活动组件
-│   │   ├── tools/          # 工具组件
-│   │   ├── threat/         # 威胁情报组件
-│   │   ├── ai/             # AI 助手组件
-│   │   ├── newsletter/     # 通讯组件
-│   │   └── notifications/  # 通知组件
-│   ├── pages/              # 页面组件
-│   │   ├── admin/          # 管理页面
-│   │   ├── academy/        # 学院页面
-│   │   └── auth/           # 认证页面
-│   ├── db/                 # 数据库层
-│   │   ├── store.ts        # 内存存储
-│   │   ├── schema.ts       # 核心类型
-│   │   ├── seed.ts         # 种子数据
-│   │   └── *Schema.ts      # 功能模块类型
-│   ├── services/           # 业务逻辑服务
-│   │   ├── authService.ts  # 认证服务
-│   │   ├── articles.ts     # 文章服务
-│   │   ├── database.ts     # Prisma 服务
-│   │   ├── aiAssistant.ts  # AI 助手服务
-│   │   ├── newsletter.ts   # 通讯服务
-│   │   └── notifications.ts # 通知服务
-│   ├── lib/                # 工具库
-│   │   ├── crypto.ts       # 加密函数
-│   │   ├── validation.ts   # 输入验证
-│   │   ├── authorization.ts # RBAC 逻辑
-│   │   ├── security.ts     # 安全工具
-│   │   ├── rateLimiter.ts  # 速率限制
-│   │   └── logger.ts       # 日志记录
-│   ├── hooks/              # 自定义 Hooks
-│   ├── types/              # TypeScript 类型
-│   └── config/             # 配置文件
+│   ├── components/          # React components
+│   │   ├── ui/              # Shared UI components
+│   │   ├── auth/            # Authentication components
+│   │   ├── layout/          # Layout components
+│   │   ├── content/         # Content components
+│   │   ├── search/          # Search components
+│   │   ├── academy/         # Academy components
+│   │   ├── community/       # Community components
+│   │   ├── jobs/            # Jobs components
+│   │   ├── events/          # Events components
+│   │   ├── tools/           # Tools components
+│   │   ├── threat/          # Threat intelligence components
+│   │   ├── ai/              # AI components
+│   │   ├── newsletter/      # Newsletter components
+│   │   └── notifications/   # Notification components
+│   ├── pages/               # Page-level modules
+│   │   ├── admin/           # Admin pages
+│   │   ├── academy/         # Academy pages
+│   │   └── auth/            # Auth pages
+│   ├── db/                  # Data layer
+│   │   ├── store.ts         # In-memory store
+│   │   ├── schema.ts        # Core types
+│   │   ├── seed.ts          # Seed data
+│   │   └── *Schema.ts       # Feature-specific schemas
+│   ├── services/            # Business logic
+│   │   ├── authService.ts   # Auth service
+│   │   ├── articles.ts      # Article service
+│   │   ├── database.ts      # Prisma service
+│   │   ├── aiAssistant.ts    # AI assistant service
+│   │   ├── newsletter.ts    # Newsletter service
+│   │   └── notifications.ts # Notification service
+│   ├── lib/                 # Utility libraries
+│   │   ├── crypto.ts        # Cryptographic utilities
+│   │   ├── validation.ts    # Input validation
+│   │   ├── authorization.ts # RBAC logic
+│   │   ├── security.ts      # Security utilities
+│   │   ├── rateLimiter.ts   # Rate limiting
+│   │   └── logger.ts        # Logging utilities
+│   ├── hooks/               # Custom hooks
+│   ├── types/               # TypeScript types
+│   └── config/              # Configuration files
 ├── prisma/
-│   ├── schema.prisma       # 数据库 Schema
-│   ├── seed.ts             # Prisma 种子脚本
-│   └── migrations/         # 迁移文件
-├── public/                 # 静态资源
+│   ├── schema.prisma        # Database schema
+│   ├── seed.ts              # Prisma seed script
+│   └── migrations/          # Migration files
+├── public/                  # Static assets
 │   ├── robots.txt
 │   └── sitemap.xml
-├── tests/                  # 测试文件
-├── scripts/                # 工具脚本
-├── .env.example            # 环境变量模板
-└── README.md               # 本文件
+├── tests/                   # Test files
+├── scripts/                 # Utility scripts
+├── .env.example             # Environment template
+├── README.md                # Project documentation
+└── LICENSE                  # License
 ```
 
 ---
 
-## 🔐 安全特性
+## 🔐 Security Features
 
-### 认证与授权
-- ✅ PBKDF2 密码哈希（100,000 次迭代）
-- ✅ 安全的会话管理
-- ✅ 基于角色的访问控制（RBAC）
-- ✅ 7 个用户角色
-- ✅ 24+ 细粒度权限
-- ✅ 速率限制防护
+### Authentication and Authorization
+- PBKDF2 password hashing (100,000 iterations)
+- Secure session handling
+- Role-based access control (RBAC)
+- 7 user roles
+- 24+ fine-grained permissions
+- Rate limiting and abuse protection
 
-### 输入验证
-- ✅ 所有输入验证
-- ✅ XSS 防护
-- ✅ SQL 注入防护
-- ✅ CSRF 防护
-- ✅ 文件上传验证
+### Input Validation
+- Input sanitization
+- XSS protection
+- SQL injection prevention
+- CSRF protection
+- File upload validation
 
-### 安全头
-- ✅ X-Frame-Options: DENY
-- ✅ X-Content-Type-Options: nosniff
-- ✅ Content-Security-Policy
-- ✅ Referrer-Policy
-- ✅ Permissions-Policy
+### Security Headers
+- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- Content-Security-Policy
+- Referrer-Policy
+- Permissions-Policy
 
-### 审计与监控
-- ✅ 完整的审计日志
-- ✅ 敏感操作追踪
-- ✅ 登录尝试记录
-- ✅ 安全事件日志
+### Auditing and Monitoring
+- Full audit logging
+- Sensitive action tracking
+- Login attempt monitoring
+- Security event tracking
 
 ---
 
-## 🧪 测试
+## 🧪 Testing
 
-### 运行测试
+### Run the test suite
 
 ```bash
-# 运行所有测试
+# Run all tests
 npm test
 
-# 运行特定测试套件
-npm run test:auth      # 认证测试
-npm run test:rbac      # RBAC 测试
-npm run test:security  # 安全测试
+# Run a specific suite
+npm run test:auth      # Authentication tests
+npm run test:rbac      # RBAC tests
+npm run test:security  # Security tests
 
-# 生成覆盖率报告
+# Generate coverage report
 npm run test:coverage
 ```
 
-### 测试覆盖
+### Coverage Overview
 
-| 测试套件 | 测试数量 | 覆盖率 | 状态 |
-|---------|---------|--------|------|
-| 认证测试 | 25 | 95% | ✅ 通过 |
-| RBAC 测试 | 18 | 90% | ✅ 通过 |
-| 安全测试 | 22 | 92% | ✅ 通过 |
-| CRUD 测试 | 30 | 88% | ✅ 通过 |
-| 集成测试 | 15 | 85% | ✅ 通过 |
-| **总计** | **110** | **90%** | **✅ 全部通过** |
+| Test Suite | Tests | Coverage | Status |
+|---------|---------|---------|--------|
+| Authentication | 25 | 95% | ✅ Passed |
+| RBAC | 18 | 90% | ✅ Passed |
+| Security | 22 | 92% | ✅ Passed |
+| CRUD | 30 | 88% | ✅ Passed |
+| Integration | 15 | 85% | ✅ Passed |
+| **Total** | **110** | **90%** | **✅ All passing** |
 
 ---
 
-## 🗄️ 数据库
+## 🗄️ Database
 
-### 开发环境（内存存储）
+### Development Environment (In-Memory Storage)
 
-开发环境使用内存存储，无需配置数据库：
+The development environment uses in-memory storage and requires no database setup:
 
 ```bash
 npm run dev
-# 数据在应用重启后重置
+# Data resets on application restart
 ```
 
-### 生产环境（PostgreSQL）
+### Production Environment (PostgreSQL)
 
-生产环境需要 PostgreSQL 数据库：
+For production, configure PostgreSQL:
 
 ```bash
-# 1. 安装 Prisma
+# 1. Install Prisma
 npm install @prisma/client prisma
 
-# 2. 配置数据库 URL
-# 编辑 .env 文件
+# 2. Configure the database URL
+# Edit .env
 DATABASE_URL="postgresql://user:password@localhost:5432/cybervault"
 
-# 3. 生成 Prisma 客户端
+# 3. Generate Prisma client
 npx prisma generate
 
-# 4. 运行迁移
+# 4. Run migrations
 npx prisma migrate dev --name init
 
-# 5. 填充演示数据
+# 5. Seed demo data
 npm run seed
 ```
 
-详细指南请查看 [DATABASE_MIGRATION_GUIDE.md](./DATABASE_MIGRATION_GUIDE.md)
+For more information, see [DATABASE_MIGRATION_GUIDE.md](./DATABASE_MIGRATION_GUIDE.md).
 
 ---
 
-## 🚢 部署
+## 🚢 Deployment
 
-### 方案 A：Vercel + Supabase（推荐）
+### Option A: Vercel + Supabase (Recommended)
 
 ```bash
-# 1. 创建 Supabase 项目
-# 访问 https://supabase.com
+# 1. Create a Supabase project
+# Visit https://supabase.com
 
-# 2. 配置环境变量
+# 2. Configure environment variables
 VITE_SUPABASE_URL=https://xxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 
-# 3. 部署到 Vercel
+# 3. Deploy to Vercel
 npm run build
 vercel --prod
 ```
 
-### 方案 B：独立后端
+### Option B: Independent Backend
 
 ```bash
-# 1. 设置 PostgreSQL 数据库
-# 2. 创建 Express API 服务
-# 3. 部署后端和前端
+# 1. Set up PostgreSQL
+# 2. Create an Express API service
+# 3. Deploy the frontend and backend separately
 ```
 
-详细指南请查看 [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for full deployment instructions.
 
 ---
 
-## 📊 性能指标
+## 📊 Performance Metrics
 
-| 指标 | 目标 | 当前 | 状态 |
+| Metric | Target | Current | Status |
 |------|------|------|------|
-| 首次内容绘制 | < 1.5s | ~1.2s | ✅ 通过 |
-| 可交互时间 | < 3s | ~2.5s | ✅ 通过 |
-| 最大内容绘制 | < 2.5s | ~2.0s | ✅ 通过 |
-| 累积布局偏移 | < 0.1 | ~0.05 | ✅ 通过 |
-| Lighthouse 评分 | > 90 | ~92 | ✅ 通过 |
+| First Contentful Paint | < 1.5s | ~1.2s | ✅ Pass |
+| Time to Interactive | < 3s | ~2.5s | ✅ Pass |
+| Largest Contentful Paint | < 2.5s | ~2.0s | ✅ Pass |
+| Cumulative Layout Shift | < 0.1 | ~0.05 | ✅ Pass |
+| Lighthouse Score | > 90 | ~92 | ✅ Pass |
 
-### 构建大小
+### Bundle Size
 
-- **JavaScript**: 611 KB（157 KB gzipped）
-- **CSS**: 55 KB（9.4 KB gzipped）
-- **HTML**: 1.7 KB（0.83 KB gzipped）
-
----
-
-## 🎯 用户流程
-
-### 公共用户
-1. 访客 → 浏览文章 ✅
-2. 访客 → 搜索内容 ✅
-3. 访客 → 注册账号 ✅
-4. 用户 → 登录系统 ✅
-5. 用户 → 书签文章 ✅
-6. 用户 → 发表评论 ✅
-
-### 内容创作者
-7. 作者 → 创建文章 ✅
-8. 作者 → 提交审核 ✅
-9. 编辑 → 审核文章 ✅
-10. 编辑 → 发布文章 ✅
-
-### 管理员
-11. 管理员 → 管理用户 ✅
-12. 管理员 → 管理内容 ✅
-
-### 学习者
-13. 用户 → 参加课程 ✅
-14. 用户 → 完成实验室 ✅
-
-### 求职者
-15. 用户 → 浏览工作 ✅
-16. 用户 → 查看活动 ✅
-
-### 安全专业人员
-17. 用户 → 查看威胁报告 ✅
-18. 用户 → 查看漏洞 ✅
-19. 用户 → 浏览工具 ✅
-20. 用户 → 使用 AI 助手 ✅
-
-**完成率**: 18/20 (90%) ✅
+- JavaScript: 611 KB (157 KB gzipped)
+- CSS: 55 KB (9.4 KB gzipped)
+- HTML: 1.7 KB (0.83 KB gzipped)
 
 ---
 
-## 📚 文档
+## 🎯 User Journeys
 
-### 核心文档
-- 📖 [架构文档](./ARCHITECTURE.md) - 系统架构设计
-- 🗄️ [数据库文档](./DATABASE.md) - 数据库 Schema
-- 🚀 [快速启动](./QUICKSTART.md) - 快速开始指南
-- 🧪 [测试指南](./TESTING_GUIDE.md) - 测试说明
+### General Users
+1. Visitor → browse articles ✅
+2. Visitor → search content ✅
+3. Visitor → register account ✅
+4. User → login ✅
+5. User → bookmark articles ✅
+6. User → comment on content ✅
 
-### 部署文档
-- 🚢 [部署指南](./DEPLOYMENT_GUIDE.md) - 完整部署说明
-- 🗄️ [迁移指南](./DATABASE_MIGRATION_GUIDE.md) - 数据库迁移
+### Content Creators
+7. Author → create article ✅
+8. Author → submit for review ✅
+9. Editor → review article ✅
+10. Editor → publish article ✅
 
-### 审查文档
-- 🔒 [安全审计](./SECURITY_AUDIT.md) - 安全审计报告
-- 📊 [生产就绪报告](./PRODUCTION_READINESS_REPORT.md) - 生产准备评估
-- 📝 [最终审查报告](./FINAL_REVIEW_REPORT.md) - 综合审查结果
+### Administrators
+11. Administrator → manage users ✅
+12. Administrator → manage content ✅
 
----
+### Learners
+13. User → enroll in course ✅
+14. User → complete lab ✅
 
-## 🤝 贡献
+### Job Seekers
+15. User → browse jobs ✅
+16. User → view events ✅
 
-欢迎贡献！请遵循以下步骤：
+### Security Professionals
+17. User → review threat reports ✅
+18. User → review vulnerabilities ✅
+19. User → browse tools ✅
+20. User → use AI assistant ✅
 
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
-### 开发规范
-
-- ✅ 使用 TypeScript
-- ✅ 遵循现有代码风格
-- ✅ 编写测试用例
-- ✅ 更新文档
-- ✅ 通过所有测试
-
----
-
-## 📝 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](./LICENSE) 文件了解详情
+**Completion rate:** 18/20 (90%) ✅
 
 ---
 
-## 🙏 致谢
+## 📚 Documentation
 
-### 技术框架
-- [React](https://react.dev/) - UI 框架
-- [TypeScript](https://www.typescriptlang.org/) - 类型安全
-- [Vite](https://vitejs.dev/) - 构建工具
-- [Tailwind CSS](https://tailwindcss.com/) - CSS 框架
+### Core Documentation
+- 📖 [Architecture Guide](./ARCHITECTURE.md) - System architecture overview
+- 🗄️ [Database Guide](./DATABASE.md) - Database schema documentation
+- 🚀 [Quick Start](./QUICKSTART.md) - Setup guide
+- 🧪 [Testing Guide](./TESTING_GUIDE.md) - Test instructions
+
+### Deployment Documentation
+- 🚢 [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Full deployment details
+- 🗄️ [Migration Guide](./DATABASE_MIGRATION_GUIDE.md) - Database migration procedures
+
+### Review Documentation
+- 🔒 [Security Audit](./SECURITY_AUDIT.md) - Security audit report
+- 📊 [Production Readiness Report](./PRODUCTION_READINESS_REPORT.md) - Production assessment
+- 📝 [Final Review Report](./FINAL_REVIEW_REPORT.md) - Comprehensive review summary
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome. Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to your branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
+
+### Development Guidelines
+
+- ✅ Use TypeScript
+- ✅ Follow the existing code style
+- ✅ Add tests for new functionality
+- ✅ Update documentation when needed
+- ✅ Ensure the full test suite passes
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgements
+
+### Technology Stack
+- [React](https://react.dev/) - UI framework
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Vite](https://vitejs.dev/) - Build tooling
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [Prisma](https://www.prisma.io/) - ORM
-- [Supabase](https://supabase.com/) - 后端服务
+- [Supabase](https://supabase.com/) - Backend platform
 
-### 灵感来源
-- 网络安全社区
-- 开源安全项目
-- 行业最佳实践
-
----
-
-## 📞 支持
-
-- 📧 **邮箱**: support@cybervault.dev
-- 🐛 **问题**: [GitHub Issues](https://github.com/你的用户名/cybervault/issues)
-- 💬 **讨论**: [GitHub Discussions](https://github.com/你的用户名/cybervault/discussions)
-- 🔒 **安全问题**: security@cybervault.dev
+### Inspiration
+- Cybersecurity community
+- Open source security projects
+- Industry best practices
 
 ---
 
-## 🌟 项目状态
+## 📞 Support
 
-| 类别 | 评分 | 状态 |
+- 📧 **Email**: support@cybervault.dev
+- 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/cybervault/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/cybervault/discussions)
+- 🔒 **Security Issues**: security@cybervault.dev
+
+---
+
+## 🌟 Project Status
+
+| Category | Score | Status |
 |------|------|------|
-| 安全性 | 93/100 | ✅ 优秀 |
-| 可靠性 | 90/100 | ✅ 很好 |
-| 性能 | 75/100 | ⚠️ 良好 |
-| 可维护性 | 95/100 | ✅ 优秀 |
-| 测试覆盖 | 90/100 | ✅ 优秀 |
-| **总体** | **82/100** | **✅ 生产就绪** |
+| Security | 93/100 | ✅ Excellent |
+| Reliability | 90/100 | ✅ Very Good |
+| Performance | 75/100 | ⚠️ Good |
+| Maintainability | 95/100 | ✅ Excellent |
+| Test Coverage | 90/100 | ✅ Excellent |
+| **Overall** | **82/100** | **✅ Production Ready** |
 
 ---
 
-## 🎉 开始使用
+## 🎉 Get Started
 
 ```bash
-# 克隆仓库
-git clone https://github.com/你的用户名/cybervault.git
+# Clone the repository
+git clone https://github.com/your-username/cybervault.git
 
-# 进入项目目录
+# Enter the project directory
 cd cybervault
 
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动开发服务器
+# Start the development server
 npm run dev
 ```
 
-访问 **http://localhost:3000** 开始探索！
+Visit **http://localhost:3000** to begin exploring.
 
 ---
 
 <div align="center">
 
-**用 ❤️ 为网络安全社区构建**
+**Built with ❤️ for the cyber security community**
 
-[⭐ Star this repo](https://github.com/你的用户名/cybervault) · [🐛 Report Bug](https://github.com/你的用户名/cybervault/issues) · [💡 Request Feature](https://github.com/你的用户名/cybervault/issues)
+[⭐ Star this repo](https://github.com/your-username/cybervault) · [🐛 Report a Bug](https://github.com/your-username/cybervault/issues) · [💡 Request a Feature](https://github.com/your-username/cybervault/issues)
 
 </div>
